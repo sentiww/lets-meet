@@ -52,15 +52,58 @@ Opis:
 
 ### M03-PU006: Odblokowanie użytkownika
 
+Aktor: `użytkownik`
+
+Opis:
+1. Użytkownik przechodzi do profilu zablokowanego użytkownika  
+2. Użytkownik wybiera opcję odblokowania zablokowanego użytkownika
+3. System odblokowuje możliwość kontaktu oraz wyświetlenia profilu oraz informuje o powodzeniu operacji
+
 ### M03-PU007: Wysłanie wiadomości do znajomego
+
+Aktor: `użytkownik`
+
+Opis:
+1. Użytkownik otwiera rozmowę ze znajomym poprzez wybór znajomego z listy znajomych
+2. Użytkownik wysyła nową wiadomość w rozmowie ze znajomym
 
 ### M03-PU008: Utworzenie czatu wydarzenia
 
+Aktor: `użytkownik`
+
+Opis:
+1. Użytkownik organizujący wydarzenie otwiera czat wydzrzenia
+2. Użytkownicy zapisani na wydarzenie dostają powiadomienie o otwarciu czatu wydarzenia
+
 ### M03-PU009: Utworzenie grupy użytkowników
+
+Aktor: `użytkownik`
+
+Opis:
+1. Użytkownik podaje nazwę oraz tematykę grupy
+2. Użytkonik wybiera użytkoników zapraszanych do grupy
+3. Uzytkownik tworzy grupę
+3. Zaproszeni użytkownicy dostają powiadomienie o utworzeniu grupy i otrzymaniu zaproszenia
 
 ### M03-PU010: Edycja grupy użytkowników
 
+Aktor: `użytkownik`
+
+Opis:
+1. Użytkownik posiadający uprawnienia do edycji grupy przechodzi do panelu zarządzania grupą
+2. Użytkonik edytuje grupę poprzez
+    - edycję nazwy grupy
+    - edycję temtyki grupy
+    - zaproszenienowych członków grupy
+    - usunięcie członków grupy
+    - zmianę uprawnień członków grupy
+
 ### M03-PU011: Usunięcie grupy użytkowników
+Aktor: `użytkownik`
+
+Opis:
+1. Użytkownik posiadający uprawnienia do edycji grupy przechodzi do panelu zarządzania grupą
+2. Uzytkownik usuwa grupę
 
 ## M04: Feed
 
