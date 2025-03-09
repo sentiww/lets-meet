@@ -20,9 +20,15 @@ Użytkownik musi mieć możliwość zarejestrowania się w systemie poprzez wype
 
 ### WF-008: Interakcje między użytkownikami
 
+Zalogowani użtkownicy muszą mieć możliwość zablokowania interakcji między sobą oraz wskazanymi użytkownikami. Zalogowani użtkownicy muszą mieć możliwość zaproszenia innych użytkowników do grona znajowmych.
+
 ### WF-009: Wysyłanie wiadomości
 
+Zalogowany użytkownik musi mieć możliwość wysłania wiadomości użytkownikom, którzy go nie zablokowali.
+
 ### WF-010: Tworzenie czatu wydarzenia
+
+Użytkownik będący organizatorem musi mieć możliwość stworzenia catu wydarzenia, w którym uczastnicy wydarzenia będą mogli komunikować się między sobą oraz z organizatorem.
 
 ### WF-011: Tworzenie i zarządzanie grupami
 
