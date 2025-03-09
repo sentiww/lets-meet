@@ -24,35 +24,127 @@ Opis:
 
 ### M01-PU001: Rejestracja użytkownika
 
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik klika przycisk "Zarejestruj mnie".
+2. Użytkownik wypełnia formularz w którym są kluczowe do rejestracji informacje(Login,Haslo,Imie,Nazwisko,Data urodzenia)
+3. W razie powodzenia wyświetla się komunikat o udanej rejestracji,system tworzy nowy profil użytkownika i zamyka się wcześniej wypełniany formularz.
+W razie nie powodzenia wyświetlany jest komunikat o nieudanej rejestracji oraz użytkownik wraca do wcześniej wypełnianego formularza.
+
 ### M01-PU002: Logowanie użytkownika
+
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik w dwóch polach wpisuje swój login oraz hasło.
+2. Klikając przycisk "Zaloguj" aplikacja próbuje rozpocząć sesje z podanymi informacjami w polach przez użytkownika.
+3. Wyświetla się komunikat o powodzeniu operacji.
+4. W razie powodzenia użytkownik jest przekierowany do strony głównej aplikacji.
 
 ### M01-PU003: Wyświetlenie profilu aktualnego użytkownika
 
+Aktor: `Użytkownik`
+
+Opis:
+
 ### M01-PU004: Edycja profilu użytkownika
+
+Aktor:`Użytkownik`
+
+Opis:
+1. Użytkownik klika w ikonę swojego profilu.
+2. Użytkownik edytuje takie elementy jak zdjęcie profilowe, imię, nazwisko, data urodzenia itp.
+3. Użytkownik kilka przycisk zapisz zmiany, po czym System aktualizuje profil w swojej bazie danych.
 
 ## M02: Wydarzenie
 
 ### M02-PU001: Dodanie wydarzenia
 
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik klika w przycisk "Stwórz Wydarzenie".
+2. Użytkownik wypełnia formularz w którym podaje nazwę,opis i datę wydarzenia wraz z ewentualnymi zdjęciami.
+3. Po kliknięciu przycisku "Stwórz" w formularzu System rejestruje nowe wydarzenie.
+
 ### M02-PU002: Edycja wydarzenia
+
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik klika przycisk edycji obok stworzonego przez niego wydarzenia.
+2. Przed użytkownikiem pojawia się formularz taki sam jak w przypadku Dodania wydarzenia z już wypełnionymi danymi.
+3. Po kliknięciu przycisku "Zaakcpetuj zmiany" w formularzu System aktualizuje wydarzenie.
 
 ### M02-PU003: Usunięcie wydarzenia
 
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik wybiera wydarzenie, które chce usunąć.
+2. System wyświetla szczegóły wydarzenia wraz z opcją usunięcia.
+3. Użytkownik potwierdza usunięcie wydarzenia.
+4. System usuwa wydarzenie i informuje użytkownika o powodzeniu operacji.
+
 ## M03: Interakcje między użytkownikami
+
+Moduł M03 odpowiada za zarządzanie interakcjami między użytkownikami w systemie. Obejmuje on funkcjonalności związane z wysyłaniem i akceptowaniem zaproszeń do znajomych, zarządzaniem listą znajomych oraz blokowaniem innych użytkowników.
 
 ### M03-PU001: Wysłanie zaproszenia do znajomych
 
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik przegląda profil innego użytkownika.
+2. System wyświetla opcję wysłania zaproszenia do znajomych.
+3. Użytkownik klika opcję wysłania zaproszenia.
+4. System wysyła zaproszenie i powiadamia drugiego użytkownika.
+
 ### M03-PU002: Akceptacja zaproszenia do znajomych
+
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik otrzymuje powiadomienie o zaproszeniu do znajomych.
+2. System umożliwia użytkownikowi zaakceptowanie lub odrzucenie zaproszenia.
+3. Użytkownik wybiera opcję akceptacji.
+4. System dodaje użytkownika do listy znajomych i powiadamia nadawcę zaproszenia.
 
 ### M03-PU003: Odrzucenie zaproszenia do znajomych
 
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik otrzymuje powiadomienie o zaproszeniu do znajomych.
+2. System umożliwia użytkownikowi zaakceptowanie lub odrzucenie zaproszenia.
+3. Użytkownik wybiera opcję odrzucenia
+4. System usuwa zaproszenie i nie informuje nadawcy.
+
 ### M03-PU004: Usunięcie znajomego
+
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik przechodzi do listy znajomych.
+2. System wyświetla opcję usunięcia znajomego.
+3. Użytkownik wybiera opcję usunięcia.
+4. System usuwa znajomego z listy i informuje użytkownika o powodzeniu operacji.
 
 ### M03-PU005: Zablokowanie użytkownika
 
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik przechodzi do profilu innego użytkownika.
+2. System wyświetla opcję zablokowania użytkownika.
+3. Użytkownik wybiera opcję blokady.
+4. System blokuje użytkownika, uniemożliwiając mu kontakt i wyświetlanie profilu.
+5. System informuje użytkownika o powodzeniu operacji.
+
 ### M03-PU006: Odblokowanie użytkownika
 
-Aktor: `użytkownik`
+Aktor: `Użytkownik`
 
 Opis:
 1. Użytkownik przechodzi do profilu zablokowanego użytkownika  
@@ -61,7 +153,7 @@ Opis:
 
 ### M03-PU007: Wysłanie wiadomości do znajomego
 
-Aktor: `użytkownik`
+Aktor: `Użytkownik`
 
 Opis:
 1. Użytkownik otwiera rozmowę ze znajomym poprzez wybór znajomego z listy znajomych
@@ -69,7 +161,7 @@ Opis:
 
 ### M03-PU008: Utworzenie czatu wydarzenia
 
-Aktor: `użytkownik`
+Aktor: `Użytkownik`
 
 Opis:
 1. Użytkownik organizujący wydarzenie otwiera czat wydzrzenia
@@ -77,7 +169,7 @@ Opis:
 
 ### M03-PU009: Utworzenie grupy użytkowników
 
-Aktor: `użytkownik`
+Aktor: `Użytkownik`
 
 Opis:
 1. Użytkownik podaje nazwę oraz tematykę grupy
@@ -87,7 +179,7 @@ Opis:
 
 ### M03-PU010: Edycja grupy użytkowników
 
-Aktor: `użytkownik`
+Aktor: `Użytkownik`
 
 Opis:
 1. Użytkownik posiadający uprawnienia do edycji grupy przechodzi do panelu zarządzania grupą
@@ -99,7 +191,8 @@ Opis:
     - zmianę uprawnień członków grupy
 
 ### M03-PU011: Usunięcie grupy użytkowników
-Aktor: `użytkownik`
+
+Aktor: `Użytkownik`
 
 Opis:
 1. Użytkownik posiadający uprawnienia do edycji grupy przechodzi do panelu zarządzania grupą
@@ -109,32 +202,61 @@ Opis:
 
 ### M04-PU001: Wyświetlenie feed-u wydarzeń
 
-Aktor: 
+Aktor: `Użytkownik`
 
-Opis: 
-
-- filtr daty
-- w obrębie grupy
-- w zadanej lokalizacji
+Opis:
+1. Użytkownik wybiera z systemu widok z feed'em wydarzeń - system wyświetla na ekranie wydarzenie.
+2. Użytkownik przeglądając feed może go filtrować, aby wyświetlane wydarzenia miały pewne ograniczenia - np. może wyświetlać tylko wydarzenia znajomych, określonej grupy, w zależności od daty, czy lokalizacji. Po wybraniu filtrów użytkownik je zatwierdza i feed ulega uaktualnieniu. 
+3. Użytkownik może w dowolnej chwili usunąć bądź zmienić filtry klikając odpowiedni przycisk.
 
 ### M04-PU002: Wyrażenie chęci uczestnictwa w wydarzeniu
 
-Aktor: Użytkownik
+Aktor: `Użytkownik`
 
-Opis: 
+Opis:
+1. Użytkownik przeglądający feed w przypadku zainteresowania wydarzeniem przesuwa je do prawej strony ekranu.
+2. System wyświetla kolejne wydarzenie.
 
 ### M04-PU003: Wyrażenie braku chęci uczestnictwa w wydarzeniu
 
-Aktor: Użytkownik
+Aktor: `Użytkownik`
 
-Opis: 
+Opis:
+1. Użytkownik przeglądający feed w przypadku braku zainteresowania wydarzeniem przesuwa je do lewej strony ekranu.
+2. System wyświetla kolejne wydarzenie.
 
 ## M05: Administracja
 
 ### M05-PU001: Dodawany systemowo
 
-Aktor: System
+Aktor: `System`
 
-Opis: Domyślny administrator dodawany jest przez system podczas inicjalizacji aplikacji, jeśli nie istnieje.
+Opis:
+1. Domyślny administrator dodawany jest przez system podczas inicjalizacji aplikacji, jeśli nie istnieje.
 
-### M05-PU002: 
+### M05-PU002: Zarządzanie treściami w aplikacji - usuwanie wydarzeń
+
+Aktor: `Administrator`
+
+Opis:
+1. Administrator wybiera widok z listą wydarzeń użytkowników.
+2. Przy wybranym wydarzeniu użytkownik klika przycisk "Usuń".
+3. Wydarzenie zostaje usunięte.
+4. 
+### M05-PU003: Zarządzanie treściami w aplikacji - blokowanie użytkowników
+
+Aktor: `Administrator`
+
+Opis:
+1. Administrator wybiera widok z listą aktywnych użytkowników.
+2. Przy wybranym użytkowniku użytkownik klika przycisk "Zablokuj".
+3. Użytkownik zostaje zablokowany i nie może zalogować się na konto.
+
+### M05-PU004: Zarządzanie treściami w aplikacji - odblokowanie użytkowników
+
+Aktor: `Administrator`
+
+Opis:
+1. Administrator wybiera widok z listą zablokowanych użytkowników.
+2. Przy wybranym zablokowanym użytkowniku użytkownik klika przycisk "Odblokuj".
+3. Użytkownik zostaje odblokowany i odzyskuje możliwość logowania na konto.
