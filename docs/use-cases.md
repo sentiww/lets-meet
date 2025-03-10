@@ -27,9 +27,9 @@ Opis:
 Aktor:`Użytkownik`
 
 Opis:
-1.Użytkownik klika przycisk "Zarejestruj mnie".
-2.Użytkownik wypełnia formularz w którym są kluczowe do rejestracji informacje(Login,Haslo,Imie,Nazwisko,Data urodzenia)
-3.W razie powodzenia wyświetla się komunikat o udanej rejestracji,system tworzy nowy profil użytkownika i zamyka się wcześniej wypełniany formularz.
+1. Użytkownik klika przycisk "Zarejestruj mnie".
+2. Użytkownik wypełnia formularz w którym są kluczowe do rejestracji informacje(Login,Haslo,Imie,Nazwisko,Data urodzenia)
+3. W razie powodzenia wyświetla się komunikat o udanej rejestracji,system tworzy nowy profil użytkownika i zamyka się wcześniej wypełniany formularz.
 W razie nie powodzenia wyświetlany jest komunikat o nieudanej rejestracji oraz użytkownik wraca do wcześniej wypełnianego formularza.
 
 ### M01-PU002: Logowanie użytkownika
@@ -37,10 +37,10 @@ W razie nie powodzenia wyświetlany jest komunikat o nieudanej rejestracji oraz 
 Aktor:`Użytkownik`
 
 Opis:
-1.Użytkownik w dwóch polach wpisuje swój login oraz hasło.
-2.Klikając przycisk "Zaloguj" aplikacja próbuje rozpocząć sesje z podanymi informacjami w polach przez użytkownika.
+1. Użytkownik w dwóch polach wpisuje swój login oraz hasło.
+2. Klikając przycisk "Zaloguj" aplikacja próbuje rozpocząć sesje z podanymi informacjami w polach przez użytkownika.
 3. Wyświetla się komunikat o powodzeniu operacji.
-4.W razie powodzenia użytkownik jest przekierowany do strony głównej aplikacji.
+4. W razie powodzenia użytkownik jest przekierowany do strony głównej aplikacji.
 
 
 ### M01-PU003: Wyświetlenie profilu aktualnego użytkownika
@@ -48,20 +48,19 @@ Opis:
 Aktor:`Użytkownik`
 
 Opis:
-1.Użytkownik klika w ikonę swojego profilu.
-2.System wyświetla informacje o profilu.
+1. Użytkownik klika w ikonę swojego profilu.
+2. System wyświetla informacje o profilu.
 
 ### M01-PU004: Edycja profilu użytkownika
 
 Aktor:`Użytkownik`
 
 Opis:
-1.Użytkownik klika w ikonę swojego profilu.
-2.Użytkownik klika w ikonę edycji profilu.
-3.Użytkownik edytuje takie elementy jak zdjęcie profilowe,imię,nazwisko,Data Urodzenia itp.
-4.Użytkownik kilka przycisk "zapisz zmiany"
-5.System aktualizuje profil w swojej bazie danych.
-
+1. Użytkownik klika w ikonę swojego profilu.
+2. Użytkownik klika w ikonę edycji profilu.
+3. Użytkownik edytuje takie elementy jak zdjęcie profilowe,imię,nazwisko,Data Urodzenia itp.
+4. Użytkownik kilka przycisk "zapisz zmiany"
+5. System aktualizuje profil w swojej bazie danych.
 
 ## M02: Wydarzenie
 
