@@ -99,6 +99,10 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    await using var scope = app.Services.CreateAsyncScope();
+    var context = scope.ServiceProvider.GetRequiredService<LetsMeetDbContext>();
+    await context.Database.MigrateAsync();
+    
     app.MapOpenApi();
     app.MapScalarApiReference((options, context) =>
     {
