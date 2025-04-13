@@ -102,6 +102,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference((options, context) =>
     {
+        options.Servers =
+        [
+            new("http://localhost:8080")
+        ];
         options.WithPreferredScheme(JwtBearerDefaults.AuthenticationScheme)
             .WithDefaultHttpBearerAuthentication(context);
     });
