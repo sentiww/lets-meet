@@ -8,6 +8,8 @@ internal static class IEndpointRouteBuilderExtensions
         var apiGroup = routeBuilder.MapGroup("/api/v1");
 
         apiGroup.MapAuthEndpoints();
+        apiGroup.MapUserEndpoints();
+        apiGroup.MapBlobEndpoints();
         
         return routeBuilder;
     }

@@ -1,7 +1,4 @@
-﻿
-using Microsoft.Extensions.Configuration;
-
-namespace LetsMeet.WebAPI.Extensions;
+﻿namespace LetsMeet.WebAPI.Extensions;
 
 public static class ConfigurationExtensions
 {

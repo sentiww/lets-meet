@@ -8,9 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation" Version="11.11.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2"/>
         <PackageReference Include="Scalar.AspNetCore" Version="2.1.3" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -20,12 +22,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\LetsMeet.WebAPI.Extensions\LetsMeet.WebAPI.Extensions.csproj" />
       <ProjectReference Include="..\LetsMeet.WebAPI.Contracts\LetsMeet.WebAPI.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\LetsMeet.WebAPI.Extensions\LetsMeet.WebAPI.Extensions.csproj" />
       <ProjectReference Include="..\LetsMeet.Persistence\LetsMeet.Persistence.csproj" />
     </ItemGroup>
 
