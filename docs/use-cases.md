@@ -92,6 +92,14 @@ Opis:
 3. Użytkownik potwierdza usunięcie wydarzenia.
 4. System usuwa wydarzenie i informuje użytkownika o powodzeniu operacji.
 
+### M02-PU004: Wyświetlanie zdjęć z wydarzenia
+
+Aktor: `Użytkownik`
+
+Opis:
+1. Użytkownik wybiera przeszłe wydarzenie, które chce zobaczyć.
+2. System wyświetla zdjęcia z wydarzenia.
+
 ## M03: Interakcje między użytkownikami
 
 Moduł M03 odpowiada za zarządzanie interakcjami między użytkownikami w systemie. Obejmuje on funkcjonalności związane z wysyłaniem i akceptowaniem zaproszeń do znajomych, zarządzaniem listą znajomych oraz blokowaniem innych użytkowników.

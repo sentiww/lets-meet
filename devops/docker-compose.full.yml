@@ -1,0 +1,55 @@
+services: 
+  backend:
+    build:
+      context: ../backend/
+      dockerfile: LetsMeet.WebAPI/Dockerfile
+    image: backend
+    container_name: backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Jwt__SecurityKey: "skdovjifvkcgxnozgmcyhlxmvzfflhsaadzzrcvknvbuqcvlctsskalymcvyphyezsifcyqxyquocwspjnxfoknlpqcdiowalccxxitxnwduuvcposxvmevuzqapesqc"
+      Jwt__ValidIssuer: "issuer"
+      Jwt__ValidAudience: "audience"
+      Jwt__ExpiryInMinutes: 5
+      Admin__EnsureExists: true
+      Admin__Username: "admin"
+      Admin__Name: "Admin"
+      Admin__Surname: "Admin"
+      Admin__DateOfBirth: "2000-01-01T00:00:00.000Z"
+      Admin__Email: "admin@letsmeet.app"
+      Admin__Password: "Admin123!"
+      Scalar__UseDefaultAuthentication: true
+      Scalar__DefaultAuthentication__Username: "admin"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=postgres;Username=postgres;Password=postgres;"
+    ports:
+      - 8080:8080
+    depends_on: 
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  postgres:
+      
+networks:
+  backend:  
