@@ -7,9 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Mvc.Core">
-        <HintPath>..\..\..\..\.nuget\packages\microsoft.aspnetcore.app.ref\9.0.3\ref\net9.0\Microsoft.AspNetCore.Mvc.Core.dll</HintPath>
-      </Reference>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
     </ItemGroup>
-
+    
 </Project>
