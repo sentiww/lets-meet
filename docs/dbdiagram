@@ -1,0 +1,96 @@
+// Open in -> https://dbdiagram.io/d
+
+table users {
+  id int [pk, increment]
+  login varchar [unique, not null]
+  password varchar [not null]
+  first_name varchar
+  last_name varchar
+  birth_date date
+  profile_picture_blob_id int [not null, ref: - blobs.id]
+  is_admin boolean [default: false]
+  is_blocked boolean [default: false]
+  created_at datetime
+  updated_at datetime
+}
+
+table events {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  title varchar
+  description text
+  event_date datetime
+  created_at datetime
+  updated_at datetime
+}
+
+table event_photos {
+  id int [pk, increment]
+  event_id int [not null, ref: > events.id]
+  blob_id int [not null, ref: - blobs.id]
+  uploaded_at datetime
+}
+
+table friends {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  friend_id int [not null, ref: > users.id]
+  status enum('pending', 'accepted', 'rejected') [default: 'pending']
+  requested_at datetime
+  responded_at datetime
+}
+
+table blocked_users {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  blocked_user_id int [not null, ref: > users.id]
+  blocked_at datetime
+}
+
+table messages {
+  id int [pk, increment]
+  sender_id int [not null, ref: > users.id]
+  receiver_id int [ref: > users.id]
+  group_id int [ref: > user_groups.id]
+  event_chat_id int [ref: > event_chats.id]
+  content text
+  sent_at datetime
+}
+
+table event_chats {
+  id int [pk, increment]
+  event_id int [not null, ref: > events.id]
+  created_at datetime
+}
+
+table user_groups {
+  id int [pk, increment]
+  name varchar
+  topic varchar
+  created_by int [ref: > users.id]
+  created_at datetime
+}
+
+table group_members {
+  id int [pk, increment]
+  group_id int [not null, ref: > user_groups.id]
+  user_id int [not null, ref: > users.id]
+  is_admin boolean [default: false]
+  joined_at datetime
+}
+
+table user_event_interest {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  event_id int [not null, ref: > events.id]
+  interest_status enum('interested', 'not_interested')
+  marked_at datetime
+}
+
+table blobs {
+  id int [pk, increment]
+  owner_id int [not null, ref: > users.id]
+  name string
+  extension string
+  stream byte[]
+}
