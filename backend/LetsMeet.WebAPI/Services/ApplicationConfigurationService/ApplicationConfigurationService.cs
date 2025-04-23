@@ -53,7 +53,7 @@ internal sealed class ApplicationConfigurationService : BackgroundService
                 PasswordHash = authenticationService.HashPassword(options.Password),
                 Name = options.Name,
                 Surname = options.Surname,
-                DateOfBirth = options.DateOfBirth,
+                DateOfBirth = options.DateOfBirth.UtcDateTime,
                 Email = options.Email
             };
             

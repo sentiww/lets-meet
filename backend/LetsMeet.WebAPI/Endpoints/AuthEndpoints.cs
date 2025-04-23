@@ -49,7 +49,7 @@ internal static class AuthEndpoints
             PasswordHash = passwordHash,
             Name = request.Name,
             Surname = request.Surname,
-            DateOfBirth = request.DateOfBirth,
+            DateOfBirth = request.DateOfBirth.UtcDateTime,
             Email = request.Email
         };
         
@@ -100,7 +100,7 @@ internal static class AuthEndpoints
         var refreshToken = RefreshToken.NewRefreshToken().ToString();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpirationDate = timeProvider.GetUtcNow().DateTime.AddMinutes(10);
+        user.RefreshTokenExpirationDate = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(10);
 
         await context.SaveChangesAsync(cancellationToken);
         

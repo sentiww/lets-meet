@@ -7,7 +7,7 @@ public sealed class UserEntity : BaseEntity
     public string Name { get; set; }
     public string Surname { get; set; }
     public string Email { get; set; }
-    public DateTimeOffset DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
     
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpirationDate { get; set; }

@@ -23,7 +23,7 @@ namespace LetsMeet.Persistence.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Surname = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    DateOfBirth = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RefreshToken = table.Column<string>(type: "text", nullable: true),
                     RefreshTokenExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },

@@ -52,7 +52,7 @@ internal static class UserEndpoints
 
         user.Name = request.Name;
         user.Surname = request.Surname;
-        user.DateOfBirth = request.DateOfBirth;
+        user.DateOfBirth = request.DateOfBirth.UtcDateTime;
         user.Email = request.Email;
 
         await context.SaveChangesAsync(cancellationToken);

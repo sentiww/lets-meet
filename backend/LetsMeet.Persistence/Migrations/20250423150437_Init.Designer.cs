@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LetsMeet.Persistence.Migrations
 {
     [DbContext(typeof(LetsMeetDbContext))]
-    [Migration("20250413143709_Init")]
+    [Migration("20250423150437_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -63,7 +63,7 @@ namespace LetsMeet.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTimeOffset>("DateOfBirth")
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
