@@ -1,10 +1,6 @@
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using LetsMeet.Persistence;
-using LetsMeet.Persistence.Entities;
 using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Endpoints;
 using LetsMeet.WebAPI.Extensions;
@@ -99,10 +95,6 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var context = scope.ServiceProvider.GetRequiredService<LetsMeetDbContext>();
-    await context.Database.MigrateAsync();
-    
     app.MapOpenApi();
     app.MapScalarApiReference((options, context) =>
     {

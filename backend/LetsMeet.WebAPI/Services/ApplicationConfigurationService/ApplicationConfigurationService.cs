@@ -1,5 +1,7 @@
+using System.Reflection;
 using LetsMeet.Persistence;
 using LetsMeet.Persistence.Entities;
+using LetsMeet.Persistence.Migrations;
 using LetsMeet.WebAPI.Options;
 using LetsMeet.WebAPI.Services.AuthenticationService;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,9 @@ internal sealed class ApplicationConfigurationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     
+    // Assembly marker
+    private readonly Assembly _migrationAssembly = typeof(Init).Assembly;
+    
     public ApplicationConfigurationService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -20,6 +25,9 @@ internal sealed class ApplicationConfigurationService : BackgroundService
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
 
+        var context = scope.ServiceProvider.GetRequiredService<LetsMeetDbContext>();
+        await context.Database.MigrateAsync(stoppingToken);
+        
         var adminOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminOptions>>();
         await HandleAdminConfigurationAsync(adminOptions.Value, stoppingToken);
     }
