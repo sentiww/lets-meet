@@ -14,9 +14,10 @@ internal sealed class Blob
 internal sealed class BlobMetadata
 {
     public int Id { get; set; }
-    public int OwnerId { get; init; }
+    public int? OwnerId { get; init; }
     public string Name { get; init; }
     public string Extension { get; init; }
+    public string ContentType { get; init; }
 }
 
 internal interface IBlobStore
@@ -53,7 +54,8 @@ internal sealed class DatabaseBlobStore : IBlobStore
             OwnerId = _userResolver.CurrentUser.Id,
             Name = blob.Metadata.Name,
             Extension = blob.Metadata.Extension,
-            Stream = blob.Data
+            ContentType = blob.Metadata.ContentType,
+            Data = blob.Data
         };
         
         _context.Blobs.Add(blobEntity);
@@ -73,9 +75,10 @@ internal sealed class DatabaseBlobStore : IBlobStore
                 Id = blob.Id,
                 OwnerId = blob.OwnerId,
                 Name = blob.Name,
-                Extension = blob.Extension
+                Extension = blob.Extension,
+                ContentType = blob.ContentType
             },
-            Data = blob.Stream
+            Data = blob.Data
         };
     }
 
@@ -111,7 +114,8 @@ internal sealed class DatabaseBlobStore : IBlobStore
                 Id = b.Id,
                 OwnerId = b.OwnerId,
                 Name = b.Name,
-                Extension = b.Extension
+                Extension = b.Extension,
+                ContentType = b.ContentType
             })
             .ToListAsync(cancellationToken);
     }

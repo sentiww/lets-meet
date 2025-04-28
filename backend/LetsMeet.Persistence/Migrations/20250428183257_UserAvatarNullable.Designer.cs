@@ -3,6 +3,7 @@ using System;
 using LetsMeet.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LetsMeet.Persistence.Migrations
 {
     [DbContext(typeof(LetsMeetDbContext))]
-    partial class LetsMeetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250428183257_UserAvatarNullable")]
+    partial class UserAvatarNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,14 +33,6 @@ namespace LetsMeet.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<byte[]>("Data")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasColumnType("text");
@@ -48,6 +43,10 @@ namespace LetsMeet.Persistence.Migrations
 
                     b.Property<int?>("OwnerId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("Stream")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 

@@ -3,6 +3,7 @@ using LetsMeet.Persistence;
 using LetsMeet.Persistence.Entities;
 using LetsMeet.Persistence.Migrations;
 using LetsMeet.WebAPI.Options;
+using LetsMeet.WebAPI.Services.AssetService;
 using LetsMeet.WebAPI.Services.AuthenticationService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -12,7 +13,7 @@ namespace LetsMeet.WebAPI.Services.ApplicationConfigurationService;
 internal sealed class ApplicationConfigurationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    
+
     // Assembly marker
     private readonly Assembly _migrationAssembly = typeof(Init).Assembly;
     
@@ -46,6 +47,24 @@ internal sealed class ApplicationConfigurationService : BackgroundService
         if (admin is null)
         {
             var authenticationService = scope.ServiceProvider.GetRequiredService<IAuthenticationService>();
+            var assetService = scope.ServiceProvider.GetRequiredService<IAssetService>();
+            
+            var avatarFile = assetService.Get("avatar.jpg");
+            var avatarBytes = new byte[avatarFile.Length];
+            await using var avatarStream = avatarFile.CreateReadStream();
+            await avatarStream.ReadExactlyAsync(avatarBytes, 0, (int)avatarFile.Length, cancellationToken);
+            
+            var avatar = new BlobEntity
+            {
+                Name = "avatar",
+                Extension = "jpg",
+                Data = avatarBytes,
+                ContentType = "image/jpeg"
+            };
+
+            context.Blobs.Add(avatar);
+            
+            await context.SaveChangesAsync(cancellationToken);
             
             admin = new UserEntity
             {
@@ -54,8 +73,11 @@ internal sealed class ApplicationConfigurationService : BackgroundService
                 Name = options.Name,
                 Surname = options.Surname,
                 DateOfBirth = options.DateOfBirth.UtcDateTime,
-                Email = options.Email
+                Email = options.Email,
+                Avatar = avatar
             };
+
+            avatar.Owner = admin;
             
             context.Users.Add(admin);
             
