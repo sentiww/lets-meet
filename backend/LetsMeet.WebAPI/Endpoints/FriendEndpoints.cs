@@ -19,6 +19,7 @@ internal static class FriendEndpoints
         userGroup.MapPost("invite", FriendInviteEndpointHandler);
         userGroup.MapPost("accept", FriendAcceptEndpointHandler);
         userGroup.MapPost("reject", FriendRejectEndpointHandler);
+        userGroup.MapPost("remove", FriendRemoveEndpointHandler);
 
         return routeBuilder;
     }
@@ -125,6 +126,36 @@ internal static class FriendEndpoints
         invite.Status = FriendStatus.Rejected;
         await context.SaveChangesAsync(cancellationToken);
         
+        return TypedResults.Ok();
+    }
+
+    private static async Task<Results<Ok, NotFound, Conflict<RemoveFriendResponse>>> FriendRemoveEndpointHandler(
+        [FromBody] RemoveFriendRequest request,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        var friendship = await context.Friends.FirstOrDefaultAsync(
+            f => f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == request.FriendId,
+            cancellationToken);
+
+        if (friendship is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (friendship.Status != FriendStatus.Accepted)
+        {
+            var response = new RemoveFriendResponse
+            {
+                Status = friendship.Status.ToString()
+            };
+            return TypedResults.Conflict(response);
+        }
+
+        context.Friends.Remove(friendship);
+        await context.SaveChangesAsync(cancellationToken);
+
         return TypedResults.Ok();
     }
 }
