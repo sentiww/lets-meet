@@ -40,7 +40,9 @@ internal static class FriendEndpoints
         }
 
         var existingInvite = await context.Friends.FirstOrDefaultAsync(
-            f => f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == invitee.Id, 
+            f => 
+                (f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == invitee.Id) ||
+                (f.User.Id == invitee.Id && f.Friend.Id == userResolver.CurrentUser.Id), 
             cancellationToken);
 
         if (existingInvite is not null)
@@ -76,7 +78,7 @@ internal static class FriendEndpoints
         CancellationToken cancellationToken)
     {
         var invite = await context.Friends.FirstOrDefaultAsync(
-            i => i.User.Id == userResolver.CurrentUser.Id && i.Friend.Id == request.InviteeId,
+            i => i.User.Id == request.InviteeId && i.Friend.Id == userResolver.CurrentUser.Id,
             cancellationToken);
 
         if (invite is null)
@@ -106,7 +108,7 @@ internal static class FriendEndpoints
         CancellationToken cancellationToken)
     {
         var invite = await context.Friends.FirstOrDefaultAsync(
-            i => i.User.Id == userResolver.CurrentUser.Id && i.Friend.Id == request.InviteeId,
+            i => i.User.Id == request.InviteeId && i.Friend.Id == userResolver.CurrentUser.Id,
             cancellationToken);
 
         if (invite is null)
@@ -136,7 +138,9 @@ internal static class FriendEndpoints
         CancellationToken cancellationToken)
     {
         var friendship = await context.Friends.FirstOrDefaultAsync(
-            f => f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == request.FriendId,
+            f => 
+                (f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == request.FriendId) ||
+                (f.User.Id == request.FriendId && f.Friend.Id == userResolver.CurrentUser.Id),
             cancellationToken);
 
         if (friendship is null)
