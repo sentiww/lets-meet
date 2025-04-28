@@ -7,6 +7,7 @@ services:
     container_name: backend
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
+      IS_DOCKER: true
       Jwt__SecurityKey: "skdovjifvkcgxnozgmcyhlxmvzfflhsaadzzrcvknvbuqcvlctsskalymcvyphyezsifcyqxyquocwspjnxfoknlpqcdiowalccxxitxnwduuvcposxvmevuzqapesqc"
       Jwt__ValidIssuer: "issuer"
       Jwt__ValidAudience: "audience"

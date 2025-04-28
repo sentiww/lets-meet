@@ -1,3 +1,4 @@
+using System.Reflection;
 using LetsMeet.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,5 +12,10 @@ public sealed class LetsMeetDbContext : DbContext
     
     public LetsMeetDbContext(DbContextOptions<LetsMeetDbContext> options) : base(options)
     {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }

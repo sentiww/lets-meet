@@ -8,4 +8,5 @@ public sealed class GetMeResponse
     public required string Surname { get; init; }
     public required DateTimeOffset DateOfBirth { get; init; }
     public required string Email { get; init; }
+    public required int? AvatarId { get; init; }
 }

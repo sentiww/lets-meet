@@ -7,6 +7,7 @@ using LetsMeet.WebAPI.Extensions;
 using LetsMeet.WebAPI.Middlewares.UserResolver;
 using LetsMeet.WebAPI.Options;
 using LetsMeet.WebAPI.Services.ApplicationConfigurationService;
+using LetsMeet.WebAPI.Services.AssetService;
 using LetsMeet.WebAPI.Services.BlobStore;
 using LetsMeet.WebAPI.Services.TokenService;
 using LetsMeet.WebAPI.Services.UserService;
@@ -75,6 +76,7 @@ builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
 builder.Services.AddSingleton<JwtSecurityTokenHandler>();
 builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IAssetService, AssemblyAssetService>();
 builder.Services.AddScoped<IBlobStore, DatabaseBlobStore>();
 
 builder.Services.AddScoped<IApiValidator<SignUpRequest>, SignUpRequestValidator>();
@@ -98,10 +100,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference((options, context) =>
     {
-        options.Servers =
-        [
-            new("http://localhost:8080")
-        ];
+        if (Environment.GetEnvironmentVariable("IS_DOCKER") == "true")
+        {
+            options.Servers =
+            [
+                new("http://localhost:8080")
+            ];   
+        }
         options.WithPreferredScheme(JwtBearerDefaults.AuthenticationScheme)
             .WithDefaultHttpBearerAuthentication(context);
     });

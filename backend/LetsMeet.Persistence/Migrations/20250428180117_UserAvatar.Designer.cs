@@ -3,6 +3,7 @@ using System;
 using LetsMeet.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LetsMeet.Persistence.Migrations
 {
     [DbContext(typeof(LetsMeetDbContext))]
-    partial class LetsMeetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250428180117_UserAvatar")]
+    partial class UserAvatar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,14 +33,6 @@ namespace LetsMeet.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<byte[]>("Data")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasColumnType("text");
@@ -46,8 +41,12 @@ namespace LetsMeet.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("OwnerId")
+                    b.Property<int>("OwnerId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("Stream")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 
@@ -90,7 +89,7 @@ namespace LetsMeet.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AvatarId")
+                    b.Property<int>("AvatarId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("DateOfBirth")
@@ -133,7 +132,9 @@ namespace LetsMeet.Persistence.Migrations
                 {
                     b.HasOne("LetsMeet.Persistence.Entities.UserEntity", "Owner")
                         .WithMany("Blobs")
-                        .HasForeignKey("OwnerId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Owner");
                 });
@@ -161,7 +162,9 @@ namespace LetsMeet.Persistence.Migrations
                 {
                     b.HasOne("LetsMeet.Persistence.Entities.BlobEntity", "Avatar")
                         .WithMany()
-                        .HasForeignKey("AvatarId");
+                        .HasForeignKey("AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Avatar");
                 });

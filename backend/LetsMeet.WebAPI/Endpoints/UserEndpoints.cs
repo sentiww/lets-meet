@@ -54,6 +54,7 @@ internal static class UserEndpoints
         user.Surname = request.Surname;
         user.DateOfBirth = request.DateOfBirth.UtcDateTime;
         user.Email = request.Email;
+        user.AvatarId = request.AvatarId;
 
         await context.SaveChangesAsync(cancellationToken);
         
@@ -73,7 +74,8 @@ internal static class UserEndpoints
             Name = user.Name,
             Surname = user.Surname,
             DateOfBirth = user.DateOfBirth,
-            Email = user.Email
+            Email = user.Email,
+            AvatarId = user.AvatarId
         };
         
         return TypedResults.Ok(response);
