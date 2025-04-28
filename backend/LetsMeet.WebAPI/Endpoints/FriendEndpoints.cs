@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using LetsMeet.Persistence;
+﻿using LetsMeet.Persistence;
 using LetsMeet.Persistence.Entities;
 using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Contracts.Responses;
@@ -18,6 +17,8 @@ internal static class FriendEndpoints
             .RequireAuthorization();
         
         userGroup.MapPost("invite", FriendInviteEndpointHandler);
+        userGroup.MapPost("accept", FriendAcceptEndpointHandler);
+        userGroup.MapPost("reject", FriendRejectEndpointHandler);
 
         return routeBuilder;
     }
@@ -62,6 +63,66 @@ internal static class FriendEndpoints
         };
         
         context.Friends.Add(newFriend);
+        await context.SaveChangesAsync(cancellationToken);
+        
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok, NotFound, Conflict<AcceptFriendResponse>>> FriendAcceptEndpointHandler(
+        [FromBody] AcceptFriendRequest request,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        var invite = await context.Friends.FirstOrDefaultAsync(
+            i => i.User.Id == userResolver.CurrentUser.Id && i.Friend.Id == request.InviteeId,
+            cancellationToken);
+
+        if (invite is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (invite.Status == FriendStatus.Accepted)
+        {
+            var response = new AcceptFriendResponse
+            {
+                Status = invite.Status.ToString()
+            };
+            return TypedResults.Conflict(response);
+        }
+        
+        invite.Status = FriendStatus.Accepted;
+        await context.SaveChangesAsync(cancellationToken);
+        
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok, NotFound, Conflict<RejectFriendResponse>>> FriendRejectEndpointHandler(
+        [FromBody] RejectFriendRequest request,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        var invite = await context.Friends.FirstOrDefaultAsync(
+            i => i.User.Id == userResolver.CurrentUser.Id && i.Friend.Id == request.InviteeId,
+            cancellationToken);
+
+        if (invite is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (invite.Status != FriendStatus.Pending)
+        {
+            var response = new RejectFriendResponse
+            {
+                Status = invite.Status.ToString()
+            };
+            return TypedResults.Conflict(response);
+        }
+        
+        invite.Status = FriendStatus.Rejected;
         await context.SaveChangesAsync(cancellationToken);
         
         return TypedResults.Ok();
