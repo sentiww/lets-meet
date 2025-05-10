@@ -8,15 +8,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lets_meet/app.dart';
-import 'package:lets_meet/main.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:lets_meet/app.dart';
 
 void main() {
   testWidgets('App starts without crashing', (WidgetTester tester) async {
-    await tester.pumpWidget(LetsMeetApp());
+    await tester.pumpWidget(const LetsMeetApp());
 
     expect(find.byType(MaterialApp), findsOneWidget);
   });
