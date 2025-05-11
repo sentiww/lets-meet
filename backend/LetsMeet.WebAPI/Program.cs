@@ -4,6 +4,7 @@ using LetsMeet.Persistence;
 using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Endpoints;
 using LetsMeet.WebAPI.Extensions;
+using LetsMeet.WebAPI.Hubs;
 using LetsMeet.WebAPI.Middlewares.UserResolver;
 using LetsMeet.WebAPI.Options;
 using LetsMeet.WebAPI.Services.ApplicationConfigurationService;
@@ -24,6 +25,8 @@ using IAuthenticationService = LetsMeet.WebAPI.Services.AuthenticationService.IA
 using ScalarOptions = LetsMeet.WebAPI.Options.ScalarOptions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR();
 
 builder.Services.AddOpenApi(options =>
 {
@@ -121,6 +124,8 @@ app.UseAuthorization();
 app.UseUserResolver();
 
 app.MapEndpoints();
+
+app.MapHub<ChatHub>("/hubs/v1/chat");
 
 app.Run();
 
