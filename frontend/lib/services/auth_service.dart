@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 /// Service responsible for authentication logic (login, registration, tokens)
 class AuthService {
-  static const _baseUrl = 'http://10.0.2.2:5000/api/v1/auth';
+  static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://10.0.2.2:5000') + '/api/v1/auth';
   static const _storage = FlutterSecureStorage();
 
   /// Sign in user with username and password

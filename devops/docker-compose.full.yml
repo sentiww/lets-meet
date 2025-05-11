@@ -1,4 +1,17 @@
 services: 
+  frontend:
+    build: 
+      context: ../frontend/
+      dockerfile: Dockerfile
+    image: frontend
+    container_name: frontend
+    environment:
+      BASE_URL: "http://localhost:8080"
+    ports:
+      - 80:80
+    networks:
+      - frontend
+  
   backend:
     build:
       context: ../backend/
@@ -27,6 +40,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
+      - frontend
       - backend
 
   postgres:
@@ -52,4 +66,5 @@ volumes:
   postgres:
       
 networks:
+  frontend:
   backend:  
