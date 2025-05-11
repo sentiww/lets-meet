@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 
-// Main login screen widget
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -11,23 +10,30 @@ class LoginScreen extends StatelessWidget {
     final isWide = MediaQuery.of(context).size.width >= 700;
 
     return Scaffold(
-      body: Container(
-        // Full screen container with gradient background
-        height: double.infinity,
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height,
           ),
-        ),
-        child: Center(
-          // Centered login content box
-          child: Container(
-            width: isWide ? 400 : double.infinity,
-            padding: const EdgeInsets.all(16),
-            child: const _LoginContent(),
+          child: IntrinsicHeight(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  width: isWide ? 400 : double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  child: const _LoginContent(),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -35,7 +41,6 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-// Login content including illustration, logo, and form
 class _LoginContent extends StatelessWidget {
   const _LoginContent();
 
@@ -48,27 +53,23 @@ class _LoginContent extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Illustration image
         Image.asset(
           'assets/images/login_illustration.png',
           height: illustrationHeight,
           fit: BoxFit.contain,
         ),
         const SizedBox(height: 16),
-        // App logo
         Image.asset(
           'assets/images/appLogo.png',
           height: logoHeight,
         ),
         const SizedBox(height: 32),
-        // Login form
         const _LoginForm(),
       ],
     );
   }
 }
 
-// Stateful widget for login form logic
 class _LoginForm extends StatefulWidget {
   const _LoginForm();
 
@@ -83,18 +84,15 @@ class _LoginFormState extends State<_LoginForm> {
   bool _loading = false;
   bool _obscure = true;
 
-  // Form validity checker
   bool get _isFormValid =>
       _emailCtrl.text.isNotEmpty && _passwordCtrl.text.isNotEmpty;
 
-  // Toggle password visibility
   void _toggleObscure() {
     setState(() {
       _obscure = !_obscure;
     });
   }
 
-  // Handle login logic and backend request
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -110,9 +108,8 @@ class _LoginFormState extends State<_LoginForm> {
     if (!mounted) return;
 
     if (success) {
-      context.go('/feed'); // Navigate to feed screen
+      context.go('/feed');
     } else {
-      // Show error if login fails
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nieprawidłowy login lub hasło')),
       );
@@ -133,7 +130,6 @@ class _LoginFormState extends State<_LoginForm> {
       onChanged: () => setState(() {}),
       child: Column(
         children: [
-          // Username field
           _InputField(
             hintText: 'Nazwa użytkownika',
             icon: Icons.email_outlined,
@@ -142,7 +138,6 @@ class _LoginFormState extends State<_LoginForm> {
             v == null || v.isEmpty ? 'Wprowadź nazwę użytkownika' : null,
           ),
           const SizedBox(height: 16),
-          // Password field with toggle
           _InputField(
             hintText: 'Hasło',
             icon: Icons.lock_outline,
@@ -152,11 +147,9 @@ class _LoginFormState extends State<_LoginForm> {
               icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
               onPressed: _toggleObscure,
             ),
-            validator: (v) =>
-            v == null || v.isEmpty ? 'Wprowadź hasło' : null,
+            validator: (v) => v == null || v.isEmpty ? 'Wprowadź hasło' : null,
           ),
           const SizedBox(height: 24),
-          // Login button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -174,7 +167,6 @@ class _LoginFormState extends State<_LoginForm> {
             ),
           ),
           const SizedBox(height: 16),
-          // Register redirect
           TextButton(
             onPressed: () {
               context.go('/register');
@@ -190,7 +182,6 @@ class _LoginFormState extends State<_LoginForm> {
   }
 }
 
-// Reusable input field widget
 class _InputField extends StatelessWidget {
   final String hintText;
   final IconData icon;
@@ -214,6 +205,7 @@ class _InputField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       validator: validator,
+      keyboardType: TextInputType.text,
       style: const TextStyle(color: Colors.black, fontSize: 16),
       decoration: InputDecoration(
         hintText: hintText,

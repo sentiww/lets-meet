@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:lets_meet/features/auth/login_screen.dart';
 import 'package:lets_meet/features/auth/register_screen.dart';
 import 'package:lets_meet/features/events/presentation/feed_screen.dart';
+import 'package:lets_meet/features/profile/my_profile_screen.dart';
+
+import 'features/profile/edit_profile_screen.dart';
 
 class LetsMeetApp extends StatelessWidget {
   const LetsMeetApp({super.key});
@@ -32,6 +35,16 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/feed',
       builder: (context, state) => const FeedScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      name: 'profile',
+      builder: (context, state) => const MyProfileScreen(),
+    ),
+    GoRoute(
+      path: '/editProfile',
+      name: 'editProfile',
+      builder: (context, state) => const EditProfileScreen(),
     ),
   ],
 );

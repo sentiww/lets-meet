@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../widgets/feed_drawer.dart';
 
 class FeedScreen extends StatelessWidget {
@@ -197,8 +198,19 @@ class _BottomNavBar extends StatelessWidget {
         ),
       ],
       onTap: (index) {
-        // TODO: zaimplementuj przełączanie widoków
+        switch (index) {
+          case 0:
+          // Jeśli już jesteś na feedzie, nie rób nic
+            break;
+          case 1:
+          // TODO: dodać trasę dla wiadomości
+            break;
+          case 2:
+            context.goNamed('profile');
+            break;
+        }
       },
+
     );
   }
 }
