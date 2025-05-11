@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
 
+  intl: ^0.18.1
+
   # HTTP dla komunikacji z API
   http: ^1.2.0
 
