@@ -1,5 +1,7 @@
+using System.Text;
 using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Contracts.Responses;
+using LetsMeet.WebAPI.Middlewares.UserResolver;
 using LetsMeet.WebAPI.Services.BlobStore;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +34,7 @@ internal static class BlobEndpoints
 
     private static async Task PostBlobEndpointHandler(
         [FromBody] PostBlobRequest request,
+        [FromServices] IUserResolver userResolver,
         [FromServices] IBlobStore blobStore,
         CancellationToken cancellationToken)
     {
@@ -39,29 +42,26 @@ internal static class BlobEndpoints
         {
             Metadata = new BlobMetadata
             {
-                OwnerId = 0, // TODO: Remove
+                OwnerId = userResolver.CurrentUser.Id, 
                 Name = request.Name,
-                Extension = "" // TODO
+                Extension = request.Extension,
+                ContentType = request.ContentType
             },
             Data = request.Data
         };
         await blobStore.SetAsync(blob, cancellationToken);
     }
 
-    private static async Task<Ok<GetBlobResponse>> GetBlobEndpointHandler(
+    // private static async Task<Ok<GetBlobResponse>> GetBlobEndpointHandler(
+    private static async Task<IFileHttpResult> GetBlobEndpointHandler(
         int blobId,
+        HttpContext context,
         [FromServices] IBlobStore blobStore,
         CancellationToken cancellationToken)
     {
         var blob = await blobStore.GetAsync(blobId, cancellationToken);
 
-        var response = new GetBlobResponse
-        {
-            Name = blob.Metadata.Name,
-            Data = blob.Data
-        };
-        
-        return TypedResults.Ok(response);
+        return TypedResults.File(blob.Data, blob.Metadata.ContentType, $"{blob.Metadata.Name}.{blob.Metadata.Extension}");
     }
     
     private static async Task<Ok<GetBlobsResponse>> GetBlobsEndpointHandler(

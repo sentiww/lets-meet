@@ -13,4 +13,10 @@ public sealed class UserEntity : BaseEntity
     public DateTime? RefreshTokenExpirationDate { get; set; }
     
     public IEnumerable<BlobEntity> Blobs { get; set; }
+    
+    public IEnumerable<BlockEntity> BlockedUsers { get; set; }
+    public IEnumerable<BlockEntity> BlockedByUsers { get; set; }
+    
+    public int? AvatarId { get; set; }
+    public BlobEntity? Avatar { get; set; }
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using LetsMeet.Persistence;
+﻿using LetsMeet.Persistence;
 using LetsMeet.Persistence.Entities;
 using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Contracts.Responses;
@@ -18,6 +17,9 @@ internal static class FriendEndpoints
             .RequireAuthorization();
         
         userGroup.MapPost("invite", FriendInviteEndpointHandler);
+        userGroup.MapPost("accept", FriendAcceptEndpointHandler);
+        userGroup.MapPost("reject", FriendRejectEndpointHandler);
+        userGroup.MapPost("remove", FriendRemoveEndpointHandler);
 
         return routeBuilder;
     }
@@ -38,7 +40,9 @@ internal static class FriendEndpoints
         }
 
         var existingInvite = await context.Friends.FirstOrDefaultAsync(
-            f => f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == invitee.Id, 
+            f => 
+                (f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == invitee.Id) ||
+                (f.User.Id == invitee.Id && f.Friend.Id == userResolver.CurrentUser.Id), 
             cancellationToken);
 
         if (existingInvite is not null)
@@ -64,6 +68,98 @@ internal static class FriendEndpoints
         context.Friends.Add(newFriend);
         await context.SaveChangesAsync(cancellationToken);
         
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok, NotFound, Conflict<AcceptFriendResponse>>> FriendAcceptEndpointHandler(
+        [FromBody] AcceptFriendRequest request,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        var invite = await context.Friends.FirstOrDefaultAsync(
+            i => i.User.Id == request.InviteeId && i.Friend.Id == userResolver.CurrentUser.Id,
+            cancellationToken);
+
+        if (invite is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (invite.Status == FriendStatus.Accepted)
+        {
+            var response = new AcceptFriendResponse
+            {
+                Status = invite.Status.ToString()
+            };
+            return TypedResults.Conflict(response);
+        }
+        
+        invite.Status = FriendStatus.Accepted;
+        await context.SaveChangesAsync(cancellationToken);
+        
+        return TypedResults.Ok();
+    }
+    
+    private static async Task<Results<Ok, NotFound, Conflict<RejectFriendResponse>>> FriendRejectEndpointHandler(
+        [FromBody] RejectFriendRequest request,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        var invite = await context.Friends.FirstOrDefaultAsync(
+            i => i.User.Id == request.InviteeId && i.Friend.Id == userResolver.CurrentUser.Id,
+            cancellationToken);
+
+        if (invite is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (invite.Status != FriendStatus.Pending)
+        {
+            var response = new RejectFriendResponse
+            {
+                Status = invite.Status.ToString()
+            };
+            return TypedResults.Conflict(response);
+        }
+        
+        invite.Status = FriendStatus.Rejected;
+        await context.SaveChangesAsync(cancellationToken);
+        
+        return TypedResults.Ok();
+    }
+
+    private static async Task<Results<Ok, NotFound, Conflict<RemoveFriendResponse>>> FriendRemoveEndpointHandler(
+        [FromBody] RemoveFriendRequest request,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        var friendship = await context.Friends.FirstOrDefaultAsync(
+            f => 
+                (f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == request.FriendId) ||
+                (f.User.Id == request.FriendId && f.Friend.Id == userResolver.CurrentUser.Id),
+            cancellationToken);
+
+        if (friendship is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (friendship.Status != FriendStatus.Accepted)
+        {
+            var response = new RemoveFriendResponse
+            {
+                Status = friendship.Status.ToString()
+            };
+            return TypedResults.Conflict(response);
+        }
+
+        context.Friends.Remove(friendship);
+        await context.SaveChangesAsync(cancellationToken);
+
         return TypedResults.Ok();
     }
 }

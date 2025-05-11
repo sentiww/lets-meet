@@ -30,4 +30,11 @@
         </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Assets\avatar.jpg" />
+      <EmbeddedResource Include="Assets\avatar.jpg">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>

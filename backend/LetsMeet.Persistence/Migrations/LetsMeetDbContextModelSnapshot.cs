@@ -30,6 +30,14 @@ namespace LetsMeet.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasColumnType("text");
@@ -38,18 +46,37 @@ namespace LetsMeet.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("OwnerId")
+                    b.Property<int?>("OwnerId")
                         .HasColumnType("integer");
-
-                    b.Property<byte[]>("Stream")
-                        .IsRequired()
-                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Blobs");
+                });
+
+            modelBuilder.Entity("LetsMeet.Persistence.Entities.BlockEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BlockedUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockedUserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Blocks");
                 });
 
             modelBuilder.Entity("LetsMeet.Persistence.Entities.EventEntity", b =>
@@ -145,6 +172,9 @@ namespace LetsMeet.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AvatarId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
@@ -175,6 +205,8 @@ namespace LetsMeet.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AvatarId");
 
                     b.ToTable("Users");
                 });
@@ -215,11 +247,28 @@ namespace LetsMeet.Persistence.Migrations
                 {
                     b.HasOne("LetsMeet.Persistence.Entities.UserEntity", "Owner")
                         .WithMany("Blobs")
-                        .HasForeignKey("OwnerId")
+                        .HasForeignKey("OwnerId");
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("LetsMeet.Persistence.Entities.BlockEntity", b =>
+                {
+                    b.HasOne("LetsMeet.Persistence.Entities.UserEntity", "BlockedUser")
+                        .WithMany("BlockedByUsers")
+                        .HasForeignKey("BlockedUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Owner");
+                    b.HasOne("LetsMeet.Persistence.Entities.UserEntity", "User")
+                        .WithMany("BlockedUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BlockedUser");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LetsMeet.Persistence.Entities.EventEntity", b =>
@@ -271,6 +320,15 @@ namespace LetsMeet.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LetsMeet.Persistence.Entities.UserEntity", b =>
+                {
+                    b.HasOne("LetsMeet.Persistence.Entities.BlobEntity", "Avatar")
+                        .WithMany()
+                        .HasForeignKey("AvatarId");
+
+                    b.Navigation("Avatar");
+                });
+
             modelBuilder.Entity("LetsMeet.Persistence.Entities.UserGroupEntity", b =>
                 {
                     b.HasOne("LetsMeet.Persistence.Entities.UserEntity", "User")
@@ -290,6 +348,10 @@ namespace LetsMeet.Persistence.Migrations
             modelBuilder.Entity("LetsMeet.Persistence.Entities.UserEntity", b =>
                 {
                     b.Navigation("Blobs");
+
+                    b.Navigation("BlockedByUsers");
+
+                    b.Navigation("BlockedUsers");
                 });
 #pragma warning restore 612, 618
         }
