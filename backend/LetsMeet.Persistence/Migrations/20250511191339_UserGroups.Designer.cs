@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LetsMeet.Persistence.Migrations
 {
     [DbContext(typeof(LetsMeetDbContext))]
-    [Migration("20250428231356_UserGroups")]
+    [Migration("20250511191339_UserGroups")]
     partial class UserGroups
     {
         /// <inheritdoc />

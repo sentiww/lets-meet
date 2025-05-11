@@ -10,14 +10,10 @@ public sealed class LetsMeetDbContext : DbContext
     public DbSet<FriendEntity> Friends { get; set; }
     public DbSet<BlobEntity> Blobs { get; set; }
     public DbSet<BlockEntity> Blocks { get; set; }
-    
     public DbSet<EventEntity> Events { get; set; }
-
     public DbSet<EventPhotoEntity> EventPhotos { get; set; }
-
     public DbSet<UserGroupEntity> UserGroups { get; set; }
-
-
+    
     public LetsMeetDbContext(DbContextOptions<LetsMeetDbContext> options) : base(options)
     {
     }

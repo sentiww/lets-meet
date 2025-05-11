@@ -1,6 +1,5 @@
 using LetsMeet.Persistence;
 using LetsMeet.Persistence.Entities;
-using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Contracts.Responses;
 using LetsMeet.WebAPI.Middlewares.UserResolver;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -13,7 +12,7 @@ internal static class EventEndpoints
 {
     public static IEndpointRouteBuilder MapEventEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
-        var eventGroup = routeBuilder.MapGroup("event")
+        var eventGroup = routeBuilder.MapGroup("events")
             .RequireAuthorization();
 
         eventGroup.MapGet(string.Empty, GetEventsEndpointHandler);
@@ -57,10 +56,10 @@ private static async Task<Ok<GetEventsResponse>> GetEventsEndpointHandler(
     CancellationToken cancellationToken)
 {
     var events = await dbContext.Events
-        .Select(e => new Event
+        .Select(e => new GetEventsResponse.Event
         {
             Id = e.Id,
-            Title = e.Title
+            Title = e.Title ?? string.Empty
         })
         .ToListAsync(cancellationToken);
 
@@ -89,7 +88,7 @@ private static async Task<Results<NotFound, Ok<GetEventResponse>>> GetEventEndpo
     var response = new GetEventResponse
     {
         Id = eventEntity.Id,
-        Title = eventEntity.Title,
+        Title = eventEntity.Title ?? string.Empty,
         Description = eventEntity.Description,
         EventDate = eventEntity.EventDate,
         PhotoIds = eventEntity.Photos.Select(p => p.Id)
