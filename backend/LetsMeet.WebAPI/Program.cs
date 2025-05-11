@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
@@ -100,12 +101,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference((options, context) =>
     {
-        if (Environment.GetEnvironmentVariable("IS_DOCKER") == "true")
+        var scalarOptions = context.RequestServices.GetRequiredService<IOptions<ScalarOptions>>();
+        if (scalarOptions.Value.UseHostNetwork)
         {
             options.Servers =
             [
                 new("http://localhost:8080")
-            ];   
+            ];
         }
         options.WithPreferredScheme(JwtBearerDefaults.AuthenticationScheme)
             .WithDefaultHttpBearerAuthentication(context);
