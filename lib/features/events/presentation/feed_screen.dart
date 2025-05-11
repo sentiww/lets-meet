@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/feed_drawer.dart';
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
@@ -10,9 +11,11 @@ class FeedScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {},
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: Image.asset(
           'assets/images/appLogoDark.png',
@@ -20,6 +23,7 @@ class FeedScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
+      drawer: const FeedDrawer(),
       backgroundColor: const Color(0xFFF5F5F5),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -116,9 +120,9 @@ class _EventCard extends StatelessWidget {
 class _ActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         _CircleButton(
           icon: Icons.close,
           color: Colors.redAccent,
