@@ -28,4 +28,7 @@ internal sealed class UserData
     public required string Surname { get; init; }
     public required string DateOfBirth { get; init; }
     public required string Email { get; init; }
+
+    public required bool IsAdmin { get; init; }
+    public required bool IsBanned { get; init; }
 }
