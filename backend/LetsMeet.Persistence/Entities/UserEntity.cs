@@ -7,6 +7,9 @@ public sealed class UserEntity : BaseEntity
     public string Name { get; set; }
     public string Surname { get; set; }
     public string Email { get; set; }
+
+    public Boolean isAdmin { get; set; }
+    public Boolean isBanned { get; set; }
     public DateTime DateOfBirth { get; set; }
     
     public string? RefreshToken { get; set; }
