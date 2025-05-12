@@ -1,18 +1,17 @@
 using LetsMeet.Persistence;
 using LetsMeet.Persistence.Entities;
-using LetsMeet.WebAPI.Hubs;
-using Microsoft.AspNetCore.SignalR;
 
 namespace LetsMeet.WebAPI.Services.ChatService;
 
 public sealed class ChatService : IChatService
 {
-    private readonly LetsMeetDbContext _context;
+    private readonly IServiceProvider _serviceProvider;
     private readonly HashSet<IChatSubscriber> _subscribers;
     
-    public ChatService(LetsMeetDbContext context)
+    public ChatService(
+        IServiceProvider serviceProvider)
     {
-        _context = context;
+        _serviceProvider = serviceProvider;
         _subscribers = new HashSet<IChatSubscriber>();
     }
 
@@ -23,7 +22,11 @@ public sealed class ChatService : IChatService
         MessageEntity message, 
         CancellationToken cancellationToken = default)
     {
-        _context.Messages.Add(message);
+        await using var context = _serviceProvider.GetRequiredService<LetsMeetDbContext>();
+        
+        context.Messages.Add(message);
+        
+        await context.SaveChangesAsync(cancellationToken);
 
         try
         {
@@ -31,10 +34,8 @@ public sealed class ChatService : IChatService
         }
         catch
         {
-            // Nothing, fire and forget
+            // Nothing, if it fails it fails
         }
-        
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task NotifySubscribersAsync(

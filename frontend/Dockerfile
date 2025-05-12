@@ -3,6 +3,8 @@ FROM ubuntu:22.04 AS build
 
 ENV FLUTTER_VERSION=3.29.3
 
+ARG BASE_URL
+
 # Install tools
 RUN apt-get update && \
     apt-get install -y curl unzip git xz-utils libglu1-mesa && \
@@ -28,7 +30,7 @@ COPY . .
 RUN flutter pub get
 
 # Build Flutter web app
-RUN flutter build web
+RUN flutter build web --dart-define=BASE_URL=$BASE_URL
 
 # Serve with Nginx
 FROM nginx:alpine

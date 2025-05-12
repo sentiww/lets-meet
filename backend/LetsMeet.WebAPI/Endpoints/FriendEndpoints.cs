@@ -15,13 +15,57 @@ internal static class FriendEndpoints
     {
         var userGroup = routeBuilder.MapGroup("friends")
             .RequireAuthorization();
-        
-        userGroup.MapPost("invite", FriendInviteEndpointHandler);
+
+        userGroup.MapGet(string.Empty, GetFriendsEndpointHandler);
+        userGroup.MapGet("invites", GetInvitesEndpointHandler);
+        userGroup.MapPost("invites", FriendInviteEndpointHandler);
         userGroup.MapPost("accept", FriendAcceptEndpointHandler);
         userGroup.MapPost("reject", FriendRejectEndpointHandler);
         userGroup.MapPost("remove", FriendRemoveEndpointHandler);
 
         return routeBuilder;
+    }
+
+    private static async Task<Ok<GetFriendsResponse>> GetFriendsEndpointHandler(
+        [FromServices] IUserResolver userResolver,
+        [FromServices] LetsMeetDbContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var friends = await context.Friends
+            .Where(f => (f.User.Id == userResolver.CurrentUser.Id || f.Friend.Id == userResolver.CurrentUser.Id) && f.Status == FriendStatus.Accepted)
+            .Select(f => new GetFriendsResponse.Friend
+            {
+                Id = f.Id,
+                FriendId = f.Friend.Id,
+                UserId = f.User.Id
+            })
+            .ToListAsync(cancellationToken);
+
+        return TypedResults.Ok(new GetFriendsResponse
+        {
+            Friends = friends
+        });
+    }
+
+    private static async Task<Ok<GetInvitesResponse>> GetInvitesEndpointHandler(
+        [FromServices] IUserResolver userResolver,
+        [FromServices] LetsMeetDbContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var invites = await context.Friends
+            .Where(f => (f.User.Id == userResolver.CurrentUser.Id || f.Friend.Id == userResolver.CurrentUser.Id) && f.Status == FriendStatus.Pending)
+            .Select(f => new GetInvitesResponse.Invite
+            {
+                Id = f.Id,
+                FriendId = f.Friend.Id,
+                UserId = f.User.Id
+            })
+            .ToListAsync(cancellationToken);
+
+        return TypedResults.Ok(new GetInvitesResponse
+        {
+            Invites = invites
+        });
     }
 
     private static async Task<Results<Ok, NotFound, Conflict<InviteFriendResponse>>> FriendInviteEndpointHandler(
@@ -77,9 +121,10 @@ internal static class FriendEndpoints
         [FromServices] IUserResolver userResolver,
         CancellationToken cancellationToken)
     {
-        var invite = await context.Friends.FirstOrDefaultAsync(
-            i => i.User.Id == request.InviteeId && i.Friend.Id == userResolver.CurrentUser.Id,
-            cancellationToken);
+        var invite = await context.Friends
+            .Include(friendEntity => friendEntity.User)
+            .Include(friendEntity => friendEntity.Friend)
+            .FirstOrDefaultAsync(i => i.User.Id == request.InviteeId && i.Friend.Id == userResolver.CurrentUser.Id, cancellationToken);
 
         if (invite is null)
         {
@@ -94,6 +139,16 @@ internal static class FriendEndpoints
             };
             return TypedResults.Conflict(response);
         }
+
+        var chat = new ChatEntity
+        {
+            Name = $"{userResolver.CurrentUser.Name} - {invite.User.Name}",
+            Type = ChatType.Direct,
+            Users = await context.Users
+                .Where(u => u.Id == invite.User.Id || u.Id == invite.Friend.Id)
+                .ToListAsync(cancellationToken)
+        };
+        context.Add(chat);
         
         invite.Status = FriendStatus.Accepted;
         await context.SaveChangesAsync(cancellationToken);
