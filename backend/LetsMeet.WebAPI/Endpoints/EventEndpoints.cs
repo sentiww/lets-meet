@@ -25,7 +25,7 @@ internal static class EventEndpoints
         return routeBuilder;
     }
 
-//delete by the owner
+//delete by the owner and admin (if condition)
  private static async Task<Results<NoContent, NotFound, ForbidHttpResult>> DeleteEventEndpointHandler(
         int eventId,
         [FromServices] LetsMeetDbContext dbContext,
@@ -40,7 +40,7 @@ internal static class EventEndpoints
             return TypedResults.NotFound();
         }
 
-        if(userResolver.CurrentUser.Id != eventEntity.UserId)
+        if(userResolver.CurrentUser.Id != eventEntity.UserId && !userResolver.CurrentUser.IsAdmin)
         {
             return TypedResults.Forbid();
         }

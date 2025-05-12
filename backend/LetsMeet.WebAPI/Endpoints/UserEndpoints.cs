@@ -18,6 +18,7 @@ internal static class UserEndpoints
         userGroup.MapGet("me", GetMeEndpointHandler);
         userGroup.MapPut("me", PutMeEndpointHandler);
         userGroup.MapGet("{id:int}", GetUserEndpointHandler);
+        userGroup.MapPut("{id:int}/toggle-ban", ToggleBanUserEndpointHandler);
         
         return routeBuilder;
     }
@@ -60,6 +61,7 @@ internal static class UserEndpoints
         
         return TypedResults.Ok();
     }
+
     
     private static async Task<Ok<GetMeResponse>> GetMeEndpointHandler(
         [FromServices] LetsMeetDbContext context,
@@ -79,5 +81,30 @@ internal static class UserEndpoints
         };
         
         return TypedResults.Ok(response);
+    }
+
+
+    //ban and unban by admin
+    private static async Task<Results<Ok, ForbidHttpResult, NotFound>> ToggleBanUserEndpointHandler(
+        int id,
+        [FromServices] LetsMeetDbContext context,
+        [FromServices] IUserResolver userResolver,
+        CancellationToken cancellationToken)
+    {
+        if (!userResolver.CurrentUser.IsAdmin)
+        {
+            return TypedResults.Forbid();
+        }
+
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (user is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        user.isBanned = true;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return TypedResults.Ok();
     }
 }
