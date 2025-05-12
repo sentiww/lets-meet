@@ -4,11 +4,13 @@ using LetsMeet.Persistence;
 using LetsMeet.WebAPI.Contracts.Requests;
 using LetsMeet.WebAPI.Endpoints;
 using LetsMeet.WebAPI.Extensions;
+using LetsMeet.WebAPI.Hubs;
 using LetsMeet.WebAPI.Middlewares.UserResolver;
 using LetsMeet.WebAPI.Options;
 using LetsMeet.WebAPI.Services.ApplicationConfigurationService;
 using LetsMeet.WebAPI.Services.AssetService;
 using LetsMeet.WebAPI.Services.BlobStore;
+using LetsMeet.WebAPI.Services.ChatService;
 using LetsMeet.WebAPI.Services.TokenService;
 using LetsMeet.WebAPI.Services.UserService;
 using LetsMeet.WebAPI.Validators;
@@ -19,12 +21,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.VisualBasic.CompilerServices;
 using Scalar.AspNetCore;
 using AuthenticationService = LetsMeet.WebAPI.Services.AuthenticationService.AuthenticationService;
 using IAuthenticationService = LetsMeet.WebAPI.Services.AuthenticationService.IAuthenticationService;
 using ScalarOptions = LetsMeet.WebAPI.Options.ScalarOptions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR();
 
 builder.Services.AddOpenApi(options =>
 {
@@ -78,6 +83,7 @@ builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
 builder.Services.AddSingleton<JwtSecurityTokenHandler>();
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton<IAssetService, AssemblyAssetService>();
+builder.Services.AddSingleton<IChatService, ChatService>();
 builder.Services.AddScoped<IBlobStore, DatabaseBlobStore>();
 
 builder.Services.AddScoped<IApiValidator<SignUpRequest>, SignUpRequestValidator>();
@@ -123,6 +129,8 @@ app.UseAuthorization();
 app.UseUserResolver();
 
 app.MapEndpoints();
+
+app.MapHub<ChatHub>("/hubs/v1/chat");
 
 app.Run();
 

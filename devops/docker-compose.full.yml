@@ -3,10 +3,10 @@ services:
     build: 
       context: ../frontend/
       dockerfile: Dockerfile
+      args:
+        BASE_URL: "http://localhost:8080"
     image: frontend
     container_name: frontend
-    environment:
-      BASE_URL: "http://localhost:8080"
     ports:
       - 80:80
     networks:
@@ -32,6 +32,7 @@ services:
       Admin__Email: "admin@letsmeet.app"
       Admin__Password: "Admin123!"
       Scalar__UseDefaultAuthentication: true
+      Scalar__UseHostNetwork: true
       Scalar__DefaultAuthentication__Username: "admin"
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=postgres;Username=postgres;Password=postgres;"
     ports:

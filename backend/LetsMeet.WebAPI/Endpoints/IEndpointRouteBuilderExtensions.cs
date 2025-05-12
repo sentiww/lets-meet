@@ -12,10 +12,9 @@ internal static class IEndpointRouteBuilderExtensions
         apiGroup.MapFriendEndpoints();
         apiGroup.MapBlockEndpoints();
         apiGroup.MapBlobEndpoints();
-
         apiGroup.MapEventEndpoints();
-
         apiGroup.MapUserGroupEndpoints();
+        apiGroup.MapChatEndpoints();
         
         return routeBuilder;
     }
