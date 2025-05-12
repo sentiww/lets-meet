@@ -102,7 +102,7 @@ internal static class UserEndpoints
             return TypedResults.NotFound();
         }
 
-        user.isBanned = true;
+        user.IsBanned = !user.IsBanned;
         await context.SaveChangesAsync(cancellationToken);
 
         return TypedResults.Ok();
