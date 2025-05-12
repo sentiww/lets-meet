@@ -6,7 +6,8 @@ internal sealed class ScalarOptions
     
     public bool UseDefaultAuthentication { get; set; }
     public DefaultAuthenticationSection? DefaultAuthentication { get; set; }
-    
+    public bool UseHostNetwork { get; set; }
+
     public class DefaultAuthenticationSection
     {
         public string Username { get; set; }

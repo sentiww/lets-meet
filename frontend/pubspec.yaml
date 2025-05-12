@@ -1,0 +1,46 @@
+name: lets_meet
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+
+  image_picker: ^1.0.5
+
+  intl: ^0.18.1
+
+  # HTTP dla komunikacji z API
+  http: ^1.2.0
+
+  # Menedżer stanu (stabilna wersja Riverpod)
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^12.1.1
+
+  # Local Storage na tokeny
+  flutter_secure_storage: ^9.0.0
+
+  # JSON serializacja
+  json_annotation: ^4.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/login_illustration.png
+    - assets/images/appLogo.png
+    - assets/images/appLogoDark.png
+    - assets/images/logo_google_g_icon.png
+    - assets/images/eventPhotoDefault.png
