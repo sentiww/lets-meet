@@ -5,7 +5,7 @@ import '../models/user.dart';
 
 class UserService {
   // Base URL for the user-related API endpoints
-  static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://10.0.2.2:5000') + '/api/v1/users';
+  static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080') + '/api/v1/users';
 
   // Secure storage for storing and retrieving the access token
   static const _storage = FlutterSecureStorage();

@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../widgets/feed_drawer.dart';
+import '../../../widgets/event_card.dart';
+import '../../../models/event.dart'; // <-- jeśli masz model
+import '../../../services/event_service.dart'; // <-- ważne
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final List<Event> events = EventService.TEST_events;
+    final Event? firstEvent = events.isNotEmpty ? events.first : null;
+
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -35,7 +41,13 @@ class FeedScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Column(
                   children: [
-                    _EventCard(),
+                    EventCard(
+                      eventId: firstEvent?.id ?? -1,
+                      title: firstEvent?.title ?? 'Jazz',
+                      location: 'Wyspa Słodowa',
+                      dateTime: firstEvent?.eventDate ?? DateTime(2025, 4, 1, 18, 30),
+                      imagePath: 'assets/images/eventPhotoDefault.png',
+                    ),
                     const SizedBox(height: 24),
                     _ActionButtons(),
                   ],
@@ -48,74 +60,7 @@ class FeedScreen extends StatelessWidget {
       bottomNavigationBar: const _BottomNavBar(currentIndex: 0),
     );
   }
-}
-
-class _EventCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                'assets/images/eventPhotoDefault.png',
-                height: 280,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Jazz',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Row(
-              children: [
-                Icon(Icons.location_on, size: 22),
-                SizedBox(width: 6),
-                Text(
-                  'Wyspa Słodowa',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Row(
-              children: [
-                Icon(Icons.calendar_today, size: 22),
-                SizedBox(width: 6),
-                Text(
-                  '01.04.2025r.',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Row(
-              children: [
-                Icon(Icons.access_time, size: 22),
-                SizedBox(width: 6),
-                Text(
-                  '18:30',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 }
 
 class _ActionButtons extends StatelessWidget {

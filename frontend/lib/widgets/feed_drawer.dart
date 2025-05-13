@@ -85,7 +85,10 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ),
               const Divider(),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop(); // zamknij drawer
+                  context.push('/getEvents'); // przejdź do formularza
+                },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Moje wydarzenia'),
                 style: ElevatedButton.styleFrom(
@@ -114,6 +117,24 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
                 ),
               ),
               const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop(); // zamknij drawer
+                  context.push('/createEvent'); // przejdź do formularza
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Dodaj wydarzenie'),
+                style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6A1B9A),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                minimumSize: const Size.fromHeight(48),
+                ),
+              ),
+              const SizedBox(height: 12),
               Center(
                 child: TextButton(
                   onPressed: () async {
