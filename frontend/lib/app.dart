@@ -4,6 +4,7 @@ import 'package:lets_meet/features/auth/login_screen.dart';
 import 'package:lets_meet/features/auth/register_screen.dart';
 import 'package:lets_meet/features/events/presentation/feed_screen.dart';
 import 'package:lets_meet/features/profile/my_profile_screen.dart';
+import 'package:lets_meet/features/profile/user_profile_screen.dart';
 
 import 'features/profile/edit_profile_screen.dart';
 
@@ -45,6 +46,12 @@ final GoRouter _router = GoRouter(
       path: '/editProfile',
       name: 'editProfile',
       builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: '/user/:id',
+      builder: (context, state) => UserProfileScreen(
+        userId: int.parse(state.pathParameters['id']!),
+      ),
     ),
   ],
 );
