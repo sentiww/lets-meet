@@ -1,9 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../widgets/feed_drawer.dart';
+import '../event_service.dart';
 
-class FeedScreen extends StatelessWidget {
+class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
+
+  @override
+  State<FeedScreen> createState() => _FeedScreenState();
+}
+
+class _FeedScreenState extends State<FeedScreen> {
+  List<Map<String, dynamic>> _events = [];
+  int _currentIndex = 0;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    try {
+      final events = await EventService.getEvents();
+      setState(() {
+        _events = events;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nie udało się pobrać wydarzeń')),
+      );
+    }
+  }
+
+  void _handleSwipe(bool attending) async {
+    if (_currentIndex >= _events.length) return;
+    final eventId = _events[_currentIndex]['id'];
+    await EventService.reactToEvent(eventId, attending);
+    setState(() => _currentIndex++);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,18 +66,39 @@ class FeedScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F5F5),
       body: LayoutBuilder(
         builder: (context, constraints) {
+          if (_loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (_currentIndex >= _events.length) {
+            return const Center(child: Text('Brak dalszych wydarzeń'));
+          }
+
+          final event = _events[_currentIndex];
+
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: Column(
-                  children: [
-                    _EventCard(),
-                    const SizedBox(height: 24),
-                    _ActionButtons(),
-                  ],
+              child: Dismissible(
+                key: ValueKey(event['id']),
+                direction: DismissDirection.horizontal,
+                onDismissed: (direction) {
+                  final attending = direction == DismissDirection.endToStart ? false : true;
+                  _handleSwipe(attending);
+                },
+                background: Container(
+                  color: Colors.green,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.only(left: 32),
+                  child: const Icon(Icons.check, color: Colors.white, size: 32),
                 ),
+                secondaryBackground: Container(
+                  color: Colors.redAccent,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 32),
+                  child: const Icon(Icons.close, color: Colors.white, size: 32),
+                ),
+                child: _EventCard(title: event['title']),
               ),
             ),
           );
@@ -51,6 +110,9 @@ class FeedScreen extends StatelessWidget {
 }
 
 class _EventCard extends StatelessWidget {
+  final String title;
+  const _EventCard({required this.title});
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -71,9 +133,9 @@ class _EventCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Jazz',
-              style: TextStyle(
+            Text(
+              title,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -84,7 +146,7 @@ class _EventCard extends StatelessWidget {
                 Icon(Icons.location_on, size: 22),
                 SizedBox(width: 6),
                 Text(
-                  'Wyspa Słodowa',
+                  'Miejsce wydarzenia',
                   style: TextStyle(fontSize: 18),
                 ),
               ],
@@ -95,7 +157,7 @@ class _EventCard extends StatelessWidget {
                 Icon(Icons.calendar_today, size: 22),
                 SizedBox(width: 6),
                 Text(
-                  '01.04.2025r.',
+                  'Data wydarzenia',
                   style: TextStyle(fontSize: 18),
                 ),
               ],
@@ -106,63 +168,12 @@ class _EventCard extends StatelessWidget {
                 Icon(Icons.access_time, size: 22),
                 SizedBox(width: 6),
                 Text(
-                  '18:30',
+                  'Godzina wydarzenia',
                   style: TextStyle(fontSize: 18),
                 ),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButtons extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _CircleButton(
-          icon: Icons.close,
-          color: Colors.redAccent,
-        ),
-        SizedBox(width: 36),
-        _CircleButton(
-          icon: Icons.favorite,
-          color: Colors.green,
-        ),
-      ],
-    );
-  }
-}
-
-class _CircleButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _CircleButton({
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      shape: const CircleBorder(),
-      elevation: 6,
-      color: Colors.white,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: () {},
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Icon(
-            icon,
-            size: 36,
-            color: color,
-          ),
         ),
       ),
     );
@@ -200,17 +211,14 @@ class _BottomNavBar extends StatelessWidget {
       onTap: (index) {
         switch (index) {
           case 0:
-          // Jeśli już jesteś na feedzie, nie rób nic
             break;
           case 1:
-          // TODO: dodać trasę dla wiadomości
             break;
           case 2:
             context.goNamed('profile');
             break;
         }
       },
-
     );
   }
 }
