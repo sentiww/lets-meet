@@ -18,7 +18,7 @@ class _GetEventsScreenState extends State<GetEventsScreen> {
   @override
   void initState() {
     super.initState();
-    _futureEvents = EventService.getEvents(); // poprawnie użyta metoda
+    _futureEvents = EventService.getEvents();
   }
 
   @override
@@ -38,35 +38,44 @@ class _GetEventsScreenState extends State<GetEventsScreen> {
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFF5F5F5),
-      body: FutureBuilder<List<Event>>(
-        future: _futureEvents,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Błąd: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Brak wydarzeń do wyświetlenia'));
-          }
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: FutureBuilder<List<Event>>(
+                future: _futureEvents,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Błąd: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('Brak wydarzeń do wyświetlenia'));
+                  }
 
-          final events = snapshot.data!;
+                  final events = snapshot.data!;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              final event = events[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: EventCard(
-                  eventId: event.id,
-                  title: event.title,
-                  location:  'Nieznana lokalizacja',
-                  dateTime: event.eventDate ?? DateTime.now(),
-                  imagePath: 'assets/images/eventPhotoDefault.png',
-                ),
-              );
-            },
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Column(
+                      children: events.map((event) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: EventCard(
+                            eventId: event.id,
+                            title: event.title,
+                            location: 'Nieznana lokalizacja',
+                            dateTime: event.eventDate ?? DateTime.now(),
+                            imagePath: 'assets/images/eventPhotoDefault.png',
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),

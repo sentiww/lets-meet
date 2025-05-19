@@ -202,7 +202,7 @@ class _BottomNavBar extends StatelessWidget {
       onTap: (index) {
         if (index == 0) context.go('/feed');
         if (index == 1) context.go('/messages');
-        if (index == 2) context.go('/myProfile');
+        if (index == 2) context.go('/profile');
       },
     );
   }
