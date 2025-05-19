@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using LetsMeet.WebAPI.Constants;
 using LetsMeet.WebAPI.Services.UserService;
 
 namespace LetsMeet.WebAPI.Middlewares.UserResolver;
@@ -30,18 +31,19 @@ internal sealed class UserResolver : IUserResolver
 
     public void Bind(IEnumerable<Claim> claims)
     {
-        const string oid = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-
         var enumerable = claims.ToList();
         
         _currentUser = new UserData
         {
-            Id = int.Parse(enumerable.First(c => c.Type == oid).Value),
+            Id = int.Parse(enumerable.First(c => c.Type == CustomClaimNames.Oid || 
+                                                 c.Type == CustomClaimNames.OidAlternative).Value),
             Username = enumerable.First(c => c.Type == ClaimTypes.Name).Value,
             Name = enumerable.First(c => c.Type == ClaimTypes.GivenName).Value,
             Surname = enumerable.First(c => c.Type == ClaimTypes.Surname).Value,
             DateOfBirth = enumerable.First(c => c.Type == ClaimTypes.DateOfBirth).Value,
-            Email = enumerable.First(c => c.Type == ClaimTypes.Email).Value
+            Email = enumerable.First(c => c.Type == ClaimTypes.Email).Value,
+            IsAdmin = bool.Parse(enumerable.First(c => c.Type == CustomClaimNames.IsAdmin).Value),
+            IsBanned = bool.Parse(enumerable.First(c => c.Type == CustomClaimNames.IsBanned).Value)
         };
     }
 }

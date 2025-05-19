@@ -19,6 +19,7 @@ public sealed class UserEntity : BaseEntity
     
     public IEnumerable<BlockEntity> BlockedUsers { get; set; }
     public IEnumerable<BlockEntity> BlockedByUsers { get; set; }
+    public IEnumerable<EventParticipantEntity> Events { get; set; }
     
     public int? AvatarId { get; set; }
     public BlobEntity? Avatar { get; set; }
