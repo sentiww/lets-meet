@@ -8,9 +8,9 @@ class EventService {
   static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080') + '/api/v1/events';
   static const _storage = FlutterSecureStorage();
   static List<Event> TEST_events = [
-  Event(id:0,title: 'Koncert Jazzowy', description: 'Opis koncertu jazzowego'),
-  Event(id:1,title: 'Warsztaty Codingowe', description: 'Opis warsztatów codingowych'),
-  Event(id:2,title: 'Teatr', description: 'Opis przedstawienia teatralnego'),
+  Event(id:0,title: 'Koncert Jazzowy', description: 'Opis koncertu jazzowego', eventDate: DateTime.now()),
+  Event(id:1,title: 'Warsztaty Codingowe', description: 'Opis warsztatów codingowych', eventDate: DateTime.now()),
+  Event(id:2,title: 'Teatr', description: 'Opis przedstawienia teatralnego', eventDate: DateTime.now()),
   ];
   static int TEST_freeID = 3;
 
@@ -72,6 +72,7 @@ class EventService {
       id: TEST_freeID++,
       title: request.title,
       description: request.description,
+      eventDate: request.eventDate,
       photoIds: request.photoBlobIds);
     TEST_events.add(TEST_newEvent);
     return;

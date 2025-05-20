@@ -3,6 +3,7 @@ import 'dart:convert'; // For handling UTF-8
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/user_service.dart';
+import '../../services/blob_service.dart';
 import '../../models/user.dart';
 import '../../widgets/feed_drawer.dart'; // Added custom drawer
 
@@ -61,16 +62,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           children: [
             const SizedBox(height: 24),
             Center(
-              child: CircleAvatar(
-                radius: 90,
-                backgroundColor: Colors.grey.shade300,
-                backgroundImage: _user!.avatarUrl != null
-                    ? NetworkImage(_user!.avatarUrl!)
-                    : null,
-                child: _user!.avatarUrl == null
-                    ? const Icon(Icons.person, size: 60, color: Colors.white)
-                    : null,
-              ),
+              child: BlobService.buildProfileAvatar(blobId: _user?.avatarId),
             ),
             const SizedBox(height: 34),
             _ProfileInfoTile(

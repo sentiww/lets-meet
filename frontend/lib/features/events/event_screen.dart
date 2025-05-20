@@ -77,7 +77,11 @@ class _EventProfileScreenState extends State<EventProfileScreen> {
                         ),
                         _ProfileInfoTile(
                           label: 'Data wydarzenia',
-                          value: _event!.eventDate.toString(),
+                          value:"${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
+                  "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
+                  "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
+                  "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
+                  "${_event!.eventDate!.minute.toString().padLeft(2, '0')}",
                           icon: Icons.calendar_today,
                         ),
                         _ProfileInfoTile(

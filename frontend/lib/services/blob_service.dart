@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/blob.dart';
 import '../models/post_blob_request.dart';
+import 'package:flutter/material.dart';
 
 class BlobService {
   static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080') + '/api/v1/blobs';
@@ -48,8 +49,46 @@ class BlobService {
       throw Exception('Błąd pobierania pliku: ${response.statusCode}');
     }
   }
-
-  static Future<void> postBlob(PostBlobRequest request) async {
+  static Future<Widget> loadBlobImage(int blobId, {BoxFit fit = BoxFit.cover, double? width, double? height}) async {
+  try {
+    Uint8List imageData = await BlobService.getBlobData(blobId);
+    return Image.memory(
+      imageData,
+      fit: fit,
+      width: width,
+      height: height,
+    );
+  } catch (e) {
+    return const Icon(Icons.broken_image, size: 48, color: Colors.grey);
+  }
+}
+  static Widget buildProfileAvatar({required int? blobId, double radius = 90}) {
+  return FutureBuilder<Uint8List>(
+    future: blobId != null ? BlobService.getBlobData(blobId!) : null,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting && blobId != null) {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey.shade300,
+          child: const CircularProgressIndicator(),
+        );
+      } else if (snapshot.hasData) {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey.shade300,
+          backgroundImage: MemoryImage(snapshot.data!),
+        );
+      } else {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey.shade300,
+          child: const Icon(Icons.person, size: 60, color: Colors.white),
+        );
+      }
+    },
+  );
+}
+  static Future<int> postBlob(PostBlobRequest request) async {
     final token = await _getToken();
 
     final response = await http.post(
@@ -61,7 +100,10 @@ class BlobService {
       body: jsonEncode(request.toJson()),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return json['id']; // assuming backend returns { id: int }
+    } else {
       throw Exception('Nie udało się wysłać bloba');
     }
   }
