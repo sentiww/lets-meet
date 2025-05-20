@@ -22,7 +22,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late String _title;
   late String _description;
   late DateTime? _selectedDate;
-  late List<String> photoBlobIds = [];
+  late List<int> photoBlobIds = [];
 
   @override
   void initState() {

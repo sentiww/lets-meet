@@ -2,7 +2,7 @@ class PostEventRequest {
   final String title;
   final String? description;
   final DateTime eventDate;
-  final List<String> photoBlobIds;
+  final List<int> photoBlobIds;
 
   PostEventRequest({
     required this.title,
@@ -15,7 +15,7 @@ class PostEventRequest {
     return {
       'title': title,
       'description': description,
-      'eventDate': eventDate.toIso8601String(),
+      'eventDate': eventDate.toUtc().toIso8601String(),
       'photoBlobIds': photoBlobIds,
     };
   }

@@ -68,7 +68,7 @@ class EventService {
   }
 
   static Future<void> postEvent(PostEventRequest request) async {
-    Event TEST_newEvent = new Event(
+    /*Event TEST_newEvent = new Event(
       id: TEST_freeID++,
       title: request.title,
       description: request.description,
@@ -76,6 +76,7 @@ class EventService {
       photoIds: request.photoBlobIds);
     TEST_events.add(TEST_newEvent);
     return;
+    */
     final token = await _getToken();
     final response = await http.post(
       Uri.parse(_baseUrl),

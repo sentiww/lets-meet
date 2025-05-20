@@ -3,7 +3,7 @@ class Event {
   final String title;
   final String? description;
   final DateTime? eventDate;
-  final List<String>? photoIds;
+  final List<int>? photoIds;
 
   Event({
     required this.id,
@@ -22,7 +22,7 @@ class Event {
           ? DateTime.parse(json['eventDate'])
           : null,
       photoIds: json['photoIds'] != null
-          ? List<String>.from(json['photoIds'])
+          ? List<int>.from(json['photoIds'])
           : null,
     );
   }
