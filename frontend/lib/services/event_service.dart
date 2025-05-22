@@ -20,7 +20,7 @@ class EventService {
   }
 
   static Future<List<Event>> getEvents() async {
-    return TEST_events;
+    //return TEST_events;
     final token = await _getToken();
     final response = await http.get(
       Uri.parse(_baseUrl),
@@ -43,11 +43,11 @@ class EventService {
   }
 
   static Future<Event?> getEvent(int id) async {
-    final event = TEST_events.firstWhere(
+    /*final event = TEST_events.firstWhere(
       (event) => event.id == id,
       orElse: () => throw Exception('TEST: Event with id $id not found!'),
     );
-    return event;
+    return event;*/
     final token = await _getToken();
     final response = await http.get(
       Uri.parse("$_baseUrl/$id"),
@@ -93,7 +93,7 @@ class EventService {
   }
 
   static Future<void> updateEvent(int id, PostEventRequest request) async {
-    int index = TEST_events.indexWhere((event) => event.id == id);
+    /*int index = TEST_events.indexWhere((event) => event.id == id);
   
     if (index != -1) {
       // Znaleziono wydarzenie, aktualizujemy jego tytuł i opis
@@ -106,7 +106,7 @@ class EventService {
     } else {
       print('TEST: Event with id $id not found!');
     }
-    return;
+    return;*/
     final token = await _getToken();
     final response = await http.put(
       Uri.parse("$_baseUrl/$id"),
@@ -123,7 +123,7 @@ class EventService {
   }
 
   static Future<void> deleteEvent(int id) async {
-    int index = TEST_events.indexWhere((event) => event.id == id);
+    /* int index = TEST_events.indexWhere((event) => event.id == id);
 
     if (index != -1) {
       // Usuwamy wydarzenie
@@ -132,7 +132,7 @@ class EventService {
     } else {
       print('TEST: Event with id $id not found!');
     }
-    return;
+    return;*/
     final token = await _getToken();
     final response = await http.delete(
       Uri.parse("$_baseUrl/$id"),

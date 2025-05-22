@@ -5,6 +5,7 @@ import 'package:lets_meet/features/auth/register_screen.dart';
 import 'package:lets_meet/features/events/feed_screen.dart';
 import 'package:lets_meet/features/profile/my_profile_screen.dart';
 import 'package:lets_meet/features/events/create_event_screen.dart';
+import 'package:lets_meet/features/events/liked_events_screen.dart';
 
 import 'features/profile/edit_profile_screen.dart';
 import 'features/events/event_screen.dart';
@@ -69,6 +70,11 @@ final GoRouter _router = GoRouter(
     path: '/getEvents',
     name: 'getEvents',
     builder: (context, state) => const GetEventsScreen(),
-),
+    ),
+     GoRoute(
+    path: '/likedEvents',
+    name: 'likedEvents',
+    builder: (context, state) => const LikedEventsScreen(),
+    ),
   ],
 );

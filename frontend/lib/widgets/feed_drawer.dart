@@ -87,7 +87,7 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop(); // zamknij drawer
-                  context.push('/getEvents'); // przejdź do formularza
+                  context.push('/likedEvents'); // przejdź do formularza
                 },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Moje wydarzenia'),
@@ -103,7 +103,10 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop(); // zamknij drawer
+                  context.push('/getEvents'); // przejdź do formularza
+                },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Zakończone wydarzenia'),
                 style: ElevatedButton.styleFrom(
