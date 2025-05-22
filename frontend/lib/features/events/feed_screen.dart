@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../widgets/feed_drawer.dart';
-import '../../../widgets/event_card.dart';
-import '../../../models/feed_event.dart';  // Use the correct model
-import '../../../services/feed_service.dart'; // Your service with getFeed() & likeEvent()
+import '../../widgets/feed_drawer.dart';
+import '../../widgets/event_card.dart';
+import '../../models/feed_event.dart';  // Use the correct model
+import '../../services/feed_service.dart'; // Your service with getFeed() & likeEvent()
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
