@@ -6,6 +6,9 @@ import 'package:lets_meet/features/events/feed_screen.dart';
 import 'package:lets_meet/features/profile/my_profile_screen.dart';
 import 'package:lets_meet/features/events/create_event_screen.dart';
 import 'package:lets_meet/features/events/liked_events_screen.dart';
+import 'package:lets_meet/features/friends/friend_list_screen.dart';
+import 'package:lets_meet/features/friends/friend_requests_screen.dart';
+import 'package:lets_meet/features/friends/send_friend_request_screen.dart';
 
 import 'features/profile/edit_profile_screen.dart';
 import 'features/events/event_screen.dart';
@@ -38,6 +41,7 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/feed',
+      name: 'feed',
       builder: (context, state) => const FeedScreen(),
     ),
     GoRoute(
@@ -76,5 +80,17 @@ final GoRouter _router = GoRouter(
     name: 'likedEvents',
     builder: (context, state) => const LikedEventsScreen(),
     ),
+    GoRoute(
+  path: '/friends',
+  builder: (context, state) => const FriendListScreen(),
+  ),
+  GoRoute(
+    path: '/friendRequests',
+    builder: (context, state) => const FriendRequestsScreen(),
+  ),
+  GoRoute(
+  path: '/addFriend',
+  builder: (context, state) => const SendFriendRequestScreen(),
+),
   ],
 );

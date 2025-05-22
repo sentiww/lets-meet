@@ -150,6 +150,28 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
                   ),
                 ),
               ),
+              ListTile(
+                leading: const Icon(Icons.group),
+                title: const Text('Twoi znajomi'),
+                onTap: () {
+                  context.go('/friends');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.mail_outline),
+                title: const Text('Zaproszenia do znajomych'),
+                onTap: () {
+                  context.go('/friendRequests');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_add_alt),
+                title: const Text('Wyślij zaproszenie'),
+                onTap: () {
+                  context.go('/addFriend');
+                },
+              ),
+
             ],
           ),
         ),

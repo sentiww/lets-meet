@@ -5,10 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/blob.dart';
 import '../models/post_blob_request.dart';
 import 'package:flutter/material.dart';
-class BlobAPISim
-{
 
-}
 class BlobService {
   static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080') + '/api/v1/blobs';
   static const _storage = FlutterSecureStorage();
