@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class PostBlobRequest {
   final String name;
   final String extension;
@@ -16,7 +18,7 @@ class PostBlobRequest {
       'name': name,
       'extension': extension,
       'contentType': contentType,
-      'data': data,
+      'data': base64Encode(data), // ✅ Encode as Base64 string
     };
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lets_meet/models/blob.dart';
 import 'package:lets_meet/services/user_service.dart';
 import 'package:lets_meet/services/blob_service.dart';
 import '../../models/user.dart';
@@ -76,7 +77,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         data: bytes,
       );
       // Upload new blob first
-      final newAvatarId = await BlobService.postBlob(blobRequest);
+      await BlobService.postBlob(blobRequest);
+      // Find out new avatar ID
+      List<BlobInfo> blobs = await BlobService.getBlobs();
+      final newAvatarId = blobs[blobs.length-1].id;
 
       // Then safely delete the old blob (if any)
       if (avatarId != null) {
@@ -89,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final success = await UserService.updateCurrentUser(
       name: _nameCtrl.text.trim(),
       surname: _surnameCtrl.text.trim(),
-      dateOfBirth: _user!.dateOfBirth ?? DateTime(2000),
+      dateOfBirth: _user?.dateOfBirth ?? DateTime(2000),
       email: _user!.email ?? '',
       avatarId: avatarId,
     );
