@@ -85,7 +85,10 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ),
               const Divider(),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop(); // zamknij drawer
+                  context.push('/likedEvents'); // przejdź do formularza
+                },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Moje wydarzenia'),
                 style: ElevatedButton.styleFrom(
@@ -100,7 +103,10 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop(); // zamknij drawer
+                  context.push('/getEvents'); // przejdź do formularza
+                },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Zakończone wydarzenia'),
                 style: ElevatedButton.styleFrom(
@@ -114,6 +120,24 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
                 ),
               ),
               const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop(); // zamknij drawer
+                  context.push('/createEvent'); // przejdź do formularza
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Dodaj wydarzenie'),
+                style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6A1B9A),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                minimumSize: const Size.fromHeight(48),
+                ),
+              ),
+              const SizedBox(height: 12),
               Center(
                 child: TextButton(
                   onPressed: () async {
@@ -126,6 +150,28 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
                   ),
                 ),
               ),
+              ListTile(
+                leading: const Icon(Icons.group),
+                title: const Text('Twoi znajomi'),
+                onTap: () {
+                  context.go('/friends');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.mail_outline),
+                title: const Text('Zaproszenia do znajomych'),
+                onTap: () {
+                  context.go('/friendRequests');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_add_alt),
+                title: const Text('Wyślij zaproszenie'),
+                onTap: () {
+                  context.go('/addFriend');
+                },
+              ),
+
             ],
           ),
         ),

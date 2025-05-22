@@ -1,34 +1,32 @@
-import 'dart:convert'; // For handling UTF-8
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/user_service.dart';
-import '../../services/blob_service.dart';
-import '../../models/user.dart';
-import '../../widgets/feed_drawer.dart'; // Added custom drawer
+import '../../models/event.dart';
+import '../../services/event_service.dart';
+import '../../widgets/feed_drawer.dart';
 
-class MyProfileScreen extends StatefulWidget {
-  const MyProfileScreen({super.key});
+class EventProfileScreen extends StatefulWidget {
+  final int eventId;
+
+  const EventProfileScreen({super.key, required this.eventId});
 
   @override
-  State<MyProfileScreen> createState() => _MyProfileScreenState();
+  State<EventProfileScreen> createState() => _EventProfileScreenState();
 }
 
-class _MyProfileScreenState extends State<MyProfileScreen> {
-  User? _user;
+class _EventProfileScreenState extends State<EventProfileScreen> {
+  Event? _event;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _loadEvent();
   }
 
-  // Loads current user data
-  Future<void> _loadProfile() async {
-    final user = await UserService.getCurrentUser();
+  Future<void> _loadEvent() async {
+    final event = await EventService.getEvent(widget.eventId);
     setState(() {
-      _user = user;
+      _event = event;
       _loading = false;
     });
   }
@@ -36,7 +34,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const FeedDrawer(), // Navigation drawer
+      drawer: const FeedDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -56,62 +54,74 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
-            : _user == null
-                ? const Center(child: Text('Błąd ładowania profilu'))
+            : _event == null
+                ? const Center(child: Text('Nie znaleziono wydarzenia'))
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    padding: const EdgeInsets.only(bottom: 30),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        const SizedBox(height: 24),
                         Center(
-                          child: BlobService.buildProfileAvatar(blobId: _user?.avatarId),
-                        ),
-                        const SizedBox(height: 34),
-                        _ProfileInfoTile(
-                          label: 'Imię i nazwisko',
-                          value: utf8.decode('${_user!.name} ${_user!.surname}'.runes.toList()),
-                          icon: Icons.person,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'Nazwa użytkownika',
-                          value: '@${_user!.username}',
-                          icon: Icons.alternate_email,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'E-mail',
-                          value: _user!.email,
-                          icon: Icons.mail_outline,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'Data urodzenia',
-                          value: _user!.formattedDate,
-                          icon: Icons.cake_outlined,
-                        ),
-                        const SizedBox(height: 80), // Spacer substitute
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final updated = await context.push<bool>('/editProfile');
-                              if (updated == true) {
-                                _loadProfile(); // Refresh profile on return
-                              }
-                            },
-                            label: const Text('Edytuj profil'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6A1B9A),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              minimumSize: const Size.fromHeight(50),
-                            ),
+                          child: Icon(
+                            Icons.event,
+                            size: 100,
+                            color: Colors.deepPurple.shade300,
                           ),
                         ),
+                        const SizedBox(height: 30),
+                        _ProfileInfoTile(
+                          label: 'Tytuł wydarzenia',
+                          value: _event!.title,
+                          icon: Icons.title,
+                        ),
+                        _ProfileInfoTile(
+                          label: 'Data wydarzenia',
+                          value:"${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
+                  "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
+                  "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
+                  "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
+                  "${_event!.eventDate!.minute.toString().padLeft(2, '0')}",
+                          icon: Icons.calendar_today,
+                        ),
+                        _ProfileInfoTile(
+                          label: 'Opis',
+                          value: _event!.description ?? 'Brak opisu',
+                          icon: Icons.description,
+                        ),
+                        /*_ProfileInfoTile(
+                          label: 'Dodane przez',
+                          value: _event!.creatorUsername,
+                          icon: Icons.person,
+                        ),
+                        const SizedBox(height: 24),
+                        if (_event!.canEdit)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final updated = await context.push<bool>('/editEvent/${_event!.id}');
+                                if (updated == true) {
+                                  _loadEvent(); // odśwież dane
+                                }
+                              },
+                              icon: const Icon(Icons.edit),
+                              label: const Text('Edytuj wydarzenie'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF6A1B9A),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
+                                minimumSize: const Size.fromHeight(50),
+                              ),
+                            ),
+                          ),*/
                       ],
                     ),
                   ),
       ),
-      bottomNavigationBar: const _BottomNavBar(currentIndex: 2),
+      bottomNavigationBar: const _BottomNavBar(currentIndex: 0),
     );
   }
 }

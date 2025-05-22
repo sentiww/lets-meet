@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lets_meet/models/blob.dart';
 import 'package:lets_meet/services/user_service.dart';
+import 'package:lets_meet/services/blob_service.dart';
 import '../../models/user.dart';
+import '../../models/post_blob_request.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -55,21 +58,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Simulated save function (since no backend communication)
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate() || _user == null) return;
 
-    setState(() => _loading = true);
+  setState(() => _loading = true);
 
-    // Simulate delay instead of calling backend
-    await Future.delayed(const Duration(seconds: 1));
+  try {
+    int? avatarId = _user!.avatarId;
+
+    if (_pickedImage != null) {
+      final bytes = await _pickedImage!.readAsBytes();
+      final filename = _pickedImage!.path.split('/').last;
+      final extension = filename.split('.').last;
+
+      final blobRequest = PostBlobRequest(
+        name: filename,
+        extension: extension,
+        contentType: 'image/$extension',
+        data: bytes,
+      );
+      // Upload new blob first
+      await BlobService.postBlob(blobRequest);
+      // Find out new avatar ID
+      List<BlobInfo> blobs = await BlobService.getBlobs();
+      final newAvatarId = blobs[blobs.length-1].id;
+
+      // Then safely delete the old blob (if any)
+      if (avatarId != null) {
+        await BlobService.deleteBlob(avatarId);
+      }
+
+      avatarId = newAvatarId;
+    }
+
+    final success = await UserService.updateCurrentUser(
+      name: _nameCtrl.text.trim(),
+      surname: _surnameCtrl.text.trim(),
+      dateOfBirth: _user?.dateOfBirth ?? DateTime(2000),
+      email: _user!.email ?? '',
+      avatarId: avatarId,
+    );
 
     setState(() => _loading = false);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zmiany zapisane lokalnie (brak połączenia z serwerem).')),
+        SnackBar(content: Text(success ? 'Zapisano zmiany profilu' : 'Nie udało się zapisać zmian')),
+      );
+    }
+  } catch (e) {
+    setState(() => _loading = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd: ${e.toString()}')),
       );
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
