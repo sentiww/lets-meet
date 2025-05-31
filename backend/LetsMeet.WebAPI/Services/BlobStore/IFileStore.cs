@@ -22,7 +22,7 @@ internal sealed class BlobMetadata
 
 internal interface IBlobStore
 {
-    public Task SetAsync(Blob blob, CancellationToken cancellationToken = default);
+    public Task<int> SetAsync(Blob blob, CancellationToken cancellationToken = default);
     public Task<Blob> GetAsync(int blobId, CancellationToken cancellationToken = default);
     public Task RemoveAsync(int blobId, CancellationToken cancellationToken = default);
     public Task<IEnumerable<BlobMetadata>> GetAllAsync(CancellationToken cancellationToken = default);
@@ -41,7 +41,7 @@ internal sealed class DatabaseBlobStore : IBlobStore
         _userResolver = userResolver;
     }
 
-    public async Task SetAsync(Blob blob, CancellationToken cancellationToken = default)
+    public async Task<int> SetAsync(Blob blob, CancellationToken cancellationToken = default)
     {
         // TODO: Separate context for blob writes
         if (_context.ChangeTracker.HasChanges())
@@ -58,9 +58,11 @@ internal sealed class DatabaseBlobStore : IBlobStore
             Data = blob.Data
         };
         
-        _context.Blobs.Add(blobEntity);
+        var addedBlob = _context.Blobs.Add(blobEntity);
         
         await _context.SaveChangesAsync(cancellationToken);
+
+        return addedBlob.Entity.Id;
     }
 
     public async Task<Blob> GetAsync(int blobId, CancellationToken cancellationToken = default)

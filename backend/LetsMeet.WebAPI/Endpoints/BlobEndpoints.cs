@@ -32,7 +32,7 @@ internal static class BlobEndpoints
         await blobStore.RemoveAsync(blobId, cancellationToken);
     }
 
-    private static async Task PostBlobEndpointHandler(
+    private static async Task<Ok<PostBlobResponse>> PostBlobEndpointHandler(
         [FromBody] PostBlobRequest request,
         [FromServices] IUserResolver userResolver,
         [FromServices] IBlobStore blobStore,
@@ -49,7 +49,18 @@ internal static class BlobEndpoints
             },
             Data = request.Data
         };
-        await blobStore.SetAsync(blob, cancellationToken);
+        var addedId = await blobStore.SetAsync(blob, cancellationToken);
+
+        var response = new PostBlobResponse
+        {
+            NewBlob = new Blob
+            {
+                Id = addedId,
+                Name = blob.Metadata.Name
+            }
+        };
+        
+        return TypedResults.Ok(response);
     }
 
     // private static async Task<Ok<GetBlobResponse>> GetBlobEndpointHandler(
