@@ -63,9 +63,22 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     child: Column(
                       children: [
                         Center(
-                          child: BlobService.buildProfileAvatar(blobId: _user?.avatarId),
+                          child: BlobService.buildProfileAvatar(blobId: _user?.avatarId ?? 0),
                         ),
-                        const SizedBox(height: 34),
+                        const SizedBox(height: 12),
+
+                        // Dodajemy nierzucające się w oczy ID użytkownika
+                        if (_user?.id != null)
+                          Text(
+                            'Twoje ID: ${_user!.id}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+
+                        const SizedBox(height: 22),
                         _ProfileInfoTile(
                           label: 'Imię i nazwisko',
                           value: utf8.decode('${_user!.name} ${_user!.surname}'.runes.toList()),

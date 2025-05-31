@@ -17,6 +17,7 @@ class FriendListScreen extends StatefulWidget {
 class _FriendListScreenState extends State<FriendListScreen> {
   bool _loading = true;
   List<Friend> _friends = [];
+  Map<int, User> _friendUsers = {}; // <friendId, User>
 
   @override
   void initState() {
@@ -27,13 +28,26 @@ class _FriendListScreenState extends State<FriendListScreen> {
   Future<void> _loadFriends() async {
     try {
       final friends = await FriendService.getFriends();
+      final userMap = <int, User>{};
+
+      // Pobierz User dla każdego friend.friendId
+      for (final friend in friends) {
+        final user = await UserService.getUserById(friend.userId);
+        if (user != null) {
+          userMap[friend.friendId] = user;
+        }
+      }
+
       setState(() {
         _friends = friends;
+        _friendUsers = userMap;
         _loading = false;
       });
     } catch (e) {
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd: ${e.toString()}')),
+      );
     }
   }
 
@@ -54,10 +68,12 @@ class _FriendListScreenState extends State<FriendListScreen> {
                   itemCount: _friends.length,
                   itemBuilder: (context, index) {
                     final friend = _friends[index];
+                    final user = _friendUsers[friend.friendId];
+
                     return ListTile(
-                      //UserService.getUserById(friend.userId)
-                      leading: BlobService.buildProfileAvatar(blobId: 0),//friend.friendId), // replace with real avatar if available
-                      title: Text(friend.friendId.toString() + 'To change'),
+                      leading: BlobService.buildProfileAvatar(blobId: user?.avatarId ?? 0), // Dodaj obsługę prawdziwego blobId jeśli dostępne
+                      title: Text('${user?.username}' ?? 'Nieznany użytkownik'),
+                      subtitle: Text('ID: ${friend.friendId}'),
                       trailing: IconButton(
                         icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
                         onPressed: () async {
