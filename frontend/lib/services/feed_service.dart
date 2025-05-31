@@ -6,7 +6,7 @@ import '../models/feed_event.dart';
 import '../models/liked_events_response.dart';
 
 class FeedService {
-  static const String _baseUrl = 'https://your-api.com/feed';
+  static const String _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080') + '/api/v1/feed';
 
   /// Fetch a random feed event
   static Future<FeedEvent?> fetchFeedEvent() async {
