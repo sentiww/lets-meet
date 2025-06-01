@@ -2,10 +2,11 @@ import 'dart:convert'; // For handling UTF-8
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../services/user_service.dart';
 import '../../services/blob_service.dart';
 import '../../models/user.dart';
-import '../../widgets/feed_drawer.dart'; // Added custom drawer
+import '../../widgets/feed_drawer.dart'; // Your custom drawer
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -54,62 +55,99 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       ),
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _user == null
-                ? const Center(child: Text('Błąd ładowania profilu'))
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Column(
-                      children: [
-                        Center(
-                          child: BlobService.buildProfileAvatar(blobId: _user?.avatarId),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Ustalamy maksymalną szerokość, np. 600 px;
+            // Na telefonach constraints.maxWidth będzie mniejsze niż 600,
+            // więc wypełni cały ekran. Na desktopie – będzie ograniczone do 600 i wyśrodkowane.
+            final maxContentWidth = 600.0;
+
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: maxContentWidth,
+                ),
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _user == null
+                    ? const Center(child: Text('Błąd ładowania profilu'))
+                    : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // 1) Awatar
+                      Center(
+                        child: BlobService.buildProfileAvatar(
+                          blobId: _user?.avatarId,
                         ),
-                        const SizedBox(height: 34),
-                        _ProfileInfoTile(
-                          label: 'Imię i nazwisko',
-                          value: utf8.decode('${_user!.name} ${_user!.surname}'.runes.toList()),
-                          icon: Icons.person,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'Nazwa użytkownika',
-                          value: '@${_user!.username}',
-                          icon: Icons.alternate_email,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'E-mail',
-                          value: _user!.email,
-                          icon: Icons.mail_outline,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'Data urodzenia',
-                          value: _user!.formattedDate,
-                          icon: Icons.cake_outlined,
-                        ),
-                        const SizedBox(height: 80), // Spacer substitute
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final updated = await context.push<bool>('/editProfile');
-                              if (updated == true) {
-                                _loadProfile(); // Refresh profile on return
-                              }
-                            },
-                            label: const Text('Edytuj profil'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6A1B9A),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              minimumSize: const Size.fromHeight(50),
+                      ),
+                      const SizedBox(height: 34),
+
+                      // 2) Informacje o użytkowniku
+                      // Każdy tile ma już wewnętrzny padding, więc wystarczy
+                      // pionowe odstępy między nimi:
+                      _ProfileInfoTile(
+                        label: 'Imię i nazwisko',
+                        value: utf8.decode(
+                            '${_user!.name} ${_user!.surname}'
+                                .runes
+                                .toList()),
+                        icon: Icons.person,
+                      ),
+                      _ProfileInfoTile(
+                        label: 'Nazwa użytkownika',
+                        value: '@${_user!.username}',
+                        icon: Icons.alternate_email,
+                      ),
+                      _ProfileInfoTile(
+                        label: 'E-mail',
+                        value: _user!.email,
+                        icon: Icons.mail_outline,
+                      ),
+                      _ProfileInfoTile(
+                        label: 'Data urodzenia',
+                        value: _user!.formattedDate,
+                        icon: Icons.cake_outlined,
+                      ),
+
+                      const SizedBox(height: 80),
+
+                      // 3) Przycisk „Edytuj profil”
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 10),
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final updated =
+                            await context.push<bool>(
+                                '/editProfile');
+                            if (updated == true) {
+                              _loadProfile(); // Refresh profile on return
+                            }
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Edytuj profil'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                            const Color(0xFF6A1B9A),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(32),
                             ),
+                            minimumSize:
+                            const Size.fromHeight(50),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
       bottomNavigationBar: const _BottomNavBar(currentIndex: 2),
     );
@@ -130,8 +168,10 @@ class _ProfileInfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      // Pionowy odstęp od poprzedniego tile
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
           color: const Color(0xFFF1E8F8),
@@ -152,9 +192,13 @@ class _ProfileInfoTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 13, color: Colors.black54)),
                   const SizedBox(height: 4),
-                  Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  Text(value,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
@@ -195,7 +239,7 @@ class _BottomNavBar extends StatelessWidget {
       ],
       onTap: (index) {
         if (index == 0) context.go('/feed');
-        if (index == 1) context.go('/messages');
+        if (index == 1) context.go('/chat_list');
         if (index == 2) context.go('/profile');
       },
     );
