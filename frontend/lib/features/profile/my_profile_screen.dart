@@ -120,8 +120,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             final updated =
-                            await context.push<bool>(
-                                '/editProfile');
+                            await context.push<bool>('/editProfile');
                             if (updated == true) {
                               _loadProfile(); // Refresh profile on return
                             }
