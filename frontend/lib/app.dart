@@ -53,10 +53,14 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const ChatListScreen(),
     ),
     GoRoute(
-      path: '/chat_conversation',
+      path: '/chat_conversation/:chatId',
       name: 'chat_conversation',
-      builder: (context, state) => const ChatConversationScreen(),
+      builder: (context, state) {
+        final id = state.pathParameters['chatId']!;
+        return ChatConversationScreen(chatId: int.parse(id));
+      },
     ),
+
     GoRoute(
       path: '/chat_friend_list',
       name: 'chat_friend_list',

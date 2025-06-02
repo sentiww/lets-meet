@@ -1,8 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:signalr_core/signalr_core.dart';
+import 'package:http/http.dart' as http;
+
+import '../../services/auth_service.dart';
 
 class ChatConversationScreen extends StatefulWidget {
-  const ChatConversationScreen({Key? key}) : super(key: key);
+  final int chatId;
+
+  const ChatConversationScreen({
+    Key? key,
+    required this.chatId,
+  }) : super(key: key);
 
   @override
   State<ChatConversationScreen> createState() => _ChatConversationScreenState();
@@ -12,55 +23,215 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // Przykładowe, statyczne wiadomości (wydłużona lista dla testu scrollowania)
-  final List<_ChatMessage> _messages = [
-    _ChatMessage(sender: 'Patryk', textLines: ['Ale jezz', 'Ale jezz', 'Ale jezz'], avatarColor: Colors.purple),
-    _ChatMessage(sender: 'Ania', textLines: ['Ale jezz'], avatarColor: Colors.pink),
-    _ChatMessage(sender: 'Patryk', textLines: ['Ale jezz', 'Ale jezz', 'Ale jezz'], avatarColor: Colors.purple),
-    _ChatMessage(sender: 'Ania', textLines: ['Ale jezz'], avatarColor: Colors.pink),
-    _ChatMessage(sender: 'Patryk', textLines: ['Ale jezz'], avatarColor: Colors.purple),
-    _ChatMessage(sender: 'Ania', textLines: ['Ale jezz'], avatarColor: Colors.pink),
-    _ChatMessage(sender: 'Patryk', textLines: ['Ale jezz', 'Ale jezz'], avatarColor: Colors.purple),
-    _ChatMessage(sender: 'Ania', textLines: ['Ale jezz', 'Ale jezz'], avatarColor: Colors.pink),
-    _ChatMessage(sender: 'Patryk', textLines: ['Ale jezz', 'Ale jezz', 'Ale jezz'], avatarColor: Colors.purple),
-    _ChatMessage(sender: 'Ania', textLines: ['Ale jezz'], avatarColor: Colors.pink),
-    _ChatMessage(sender: 'Patryk', textLines: ['Ale jezz'], avatarColor: Colors.purple),
-    _ChatMessage(sender: 'Ania', textLines: ['Ale jezz'], avatarColor: Colors.pink),
-  ];
+  late HubConnection _hubConnection;
+  final List<ChatMessage> _messages = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    // Po zbudowaniu widoku przewiń na dół
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    _initializeChat();
+  }
+
+  Future<void> _initializeChat() async {
+    try {
+      await _fetchInitialMessages();
+      await _setupSignalR();
+    } catch (e) {
+      if (e.toString().contains('Unauthorized')) {
+        // If unauthorized, send the user back to login
+        context.goNamed('login');
+      } else {
+        // Otherwise, print the error for debugging
+        print('[ChatConversation] Initialization error: $e');
+      }
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchInitialMessages() async {
+    final token = await AuthService.getAccessToken();
+    if (token == null) throw Exception('Unauthorized');
+
+    final uri = Uri.parse('http://localhost:8080/api/v1/chats/${widget.chatId}');
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final messagesJson = data['messages'] as List<dynamic>;
+      setState(() {
+        _messages.clear();
+        _messages.addAll(messagesJson
+            .map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
+            .toList());
+      });
+      _scrollToBottom();
+      print('[ChatConversation] Loaded ${_messages.length} initial messages');
+    } else if (response.statusCode == 401) {
+      final refreshed = await AuthService.refreshToken();
+      if (!refreshed) throw Exception('Unauthorized');
+      await _fetchInitialMessages();
+    } else {
+      throw Exception('Failed to load messages (${response.statusCode})');
+    }
+  }
+
+  Future<void> _setupSignalR() async {
+    final token = await AuthService.getAccessToken();
+    if (token == null) throw Exception('Unauthorized');
+
+    // NOTE: use the exact path your server maps for ChatHub.
+    // If your Program.cs does app.MapHub<ChatHub>("/hubs/chathub"),
+    // then this URL must be http://localhost:8080/hubs/chathub.
+    _hubConnection = HubConnectionBuilder()
+        .withUrl(
+      'http://localhost:8080/hubs/chathub',
+      HttpConnectionOptions(
+        accessTokenFactory: () async => token,
+      ),
+    )
+        .withAutomaticReconnect()
+        .build();
+
+    _hubConnection.onclose((error) {
+      print('[SignalR] Connection closed: $error');
+    });
+    _hubConnection.onreconnecting((error) {
+      print('[SignalR] Reconnecting: $error');
+    });
+    _hubConnection.onreconnected((id) {
+      print('[SignalR] Reconnected: $id');
+    });
+
+    // Listen for “NewMessage” broadcasts
+    _hubConnection.on('NewMessage', (arguments) async {
+      print('[SignalR] Received NewMessage args: $arguments');
+      if (arguments != null && arguments.length >= 2) {
+        final chatId = arguments[0] as int;
+        final messageId = arguments[1] as int;
+        if (chatId == widget.chatId) {
+          final newMsg = await _fetchSingleMessage(messageId);
+          setState(() {
+            _messages.add(newMsg);
+          });
+          _scrollToBottom();
+          print('[ChatConversation] Appended new message ID $messageId');
+        }
       }
     });
+
+    print('[SignalR] Starting connection to chat ${widget.chatId}...');
+    await _hubConnection.start();
+    print('[SignalR] Connection state after start: ${_hubConnection.state}');
+  }
+
+  Future<ChatMessage> _fetchSingleMessage(int messageId) async {
+    final token = await AuthService.getAccessToken();
+    if (token == null) throw Exception('Unauthorized');
+
+    final uri = Uri.parse(
+      'http://localhost:8080/api/v1/chats/${widget.chatId}/messages/$messageId',
+    );
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      print('[ChatConversation] Fetched single message: $data');
+      return ChatMessage.fromJson(data);
+    } else if (response.statusCode == 401) {
+      final refreshed = await AuthService.refreshToken();
+      if (!refreshed) throw Exception('Unauthorized');
+      return _fetchSingleMessage(messageId);
+    } else {
+      throw Exception('Failed to load message ($messageId)');
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _sendMessage() async {
+    final content = _messageController.text.trim();
+    if (content.isEmpty) return;
+
+    // AuthService currently has no getCurrentUserId; replace with your own logic
+    final fromId = await AuthService.getCurrentUserId();
+    if (fromId == null) {
+      context.goNamed('login');
+      return;
+    }
+
+    print('[ChatConversation] Attempting to send message: "$content"');
+    if (_hubConnection.state != HubConnectionState.connected) {
+      print('[SignalR] Not connected, attempting to start...');
+      try {
+        await _hubConnection.start();
+      } catch (e) {
+        print('[SignalR] Failed to reconnect: $e');
+      }
+      if (_hubConnection.state != HubConnectionState.connected) {
+        print('[SignalR] Still not connected, abort send');
+        return;
+      }
+    }
+
+    try {
+      await _hubConnection.invoke('SendMessage', args: [
+        widget.chatId,
+        fromId,
+        content,
+      ]);
+      print('[SignalR] invoke SendMessage succeeded');
+      _messageController.clear();
+    } catch (e) {
+      print('[SignalR] ERROR when calling SendMessage: $e');
+    }
   }
 
   @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _hubConnection.stop();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Usunięto drawer i dolny pasek nawigacji
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        // Strzałka powrotu do listy czatów
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () {
             context.goNamed('chat_list');
           },
         ),
-        // Własny tytuł: logo + ikona ludzika bliżej środka
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -68,7 +239,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               'assets/images/appLogoDark.png',
               height: 40,
             ),
-            const SizedBox(width: 24), // Większa przerwa między logo a ikoną
+            const SizedBox(width: 16),
             IconButton(
               icon: const Icon(Icons.person_outline, color: Colors.black54),
               onPressed: () {
@@ -86,20 +257,53 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
               children: [
-                // Rozwijalna lista wiadomości
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Scrollbar(
+                    child: _messages.isEmpty
+                        ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 80,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Nie ma jeszcze żadnych wiadomości',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Napisz jako pierwszy i rozpocznij rozmowę!',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                        : Scrollbar(
                       controller: _scrollController,
                       thumbVisibility: true,
                       child: ListView.separated(
                         controller: _scrollController,
-                        padding: const EdgeInsets.only(top: 16, bottom: 16),
+                        padding:
+                        const EdgeInsets.only(top: 16, bottom: 16),
                         itemCount: _messages.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, __) =>
+                        const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final msg = _messages[index];
                           return _MessageCard(message: msg);
@@ -108,8 +312,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     ),
                   ),
                 ),
-
-                // Pasek wpisywania wiadomości
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Row(
@@ -121,7 +323,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                             color: const Color(0xFFE0E0E0),
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 16),
                           alignment: Alignment.centerLeft,
                           child: TextField(
                             controller: _messageController,
@@ -129,6 +332,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               hintText: 'Napisz wiadomość...',
                               border: InputBorder.none,
                             ),
+                            onSubmitted: (_) => _sendMessage(),
                           ),
                         ),
                       ),
@@ -139,10 +343,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         elevation: 4,
                         child: InkWell(
                           customBorder: const CircleBorder(),
-                          onTap: () {
-                            // Na razie brak logiki wysyłania
-                            _messageController.clear();
-                          },
+                          onTap: _sendMessage,
                           child: const Padding(
                             padding: EdgeInsets.all(12),
                             child: Icon(
@@ -165,22 +366,32 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   }
 }
 
-/// Model jednej wiadomości (statyczne dane)
-class _ChatMessage {
-  final String sender;
-  final List<String> textLines;
-  final Color avatarColor;
+/// Model pojedynczej wiadomości
+class ChatMessage {
+  final int id;
+  final int fromId;
+  final DateTime sentAt;
+  final String content;
 
-  _ChatMessage({
-    required this.sender,
-    required this.textLines,
-    required this.avatarColor,
+  ChatMessage({
+    required this.id,
+    required this.fromId,
+    required this.sentAt,
+    required this.content,
   });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'] as int,
+      fromId: json['fromId'] as int,
+      sentAt: DateTime.parse(json['sentAt'] as String),
+      content: json['content'] as String,
+    );
+  }
 }
 
-/// Widok "karty" pojedynczej wiadomości
 class _MessageCard extends StatelessWidget {
-  final _ChatMessage message;
+  final ChatMessage message;
 
   const _MessageCard({Key? key, required this.message}) : super(key: key);
 
@@ -204,8 +415,8 @@ class _MessageCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: message.avatarColor.withOpacity(0.2),
-            child: Icon(Icons.person, color: message.avatarColor, size: 24),
+            backgroundColor: Colors.grey.withOpacity(0.2),
+            child: const Icon(Icons.person, color: Colors.black54, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -213,7 +424,7 @@ class _MessageCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  message.sender,
+                  'User ${message.fromId}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -221,11 +432,14 @@ class _MessageCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                ...message.textLines.map(
-                      (line) => Text(
-                    line,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
-                  ),
+                Text(
+                  message.content,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${message.sentAt.toLocal()}',
+                  style: TextStyle(fontSize: 12, color: Colors.black45),
                 ),
               ],
             ),
