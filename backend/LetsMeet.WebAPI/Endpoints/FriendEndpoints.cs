@@ -83,7 +83,9 @@ internal static class FriendEndpoints
             return TypedResults.NotFound();
         }
 
-        var existingInvite = await context.Friends.FirstOrDefaultAsync(
+        var existingInvite = await context.Friends
+            .Include(entity => entity.Friend )
+            .FirstOrDefaultAsync(
             f => 
                 (f.User.Id == userResolver.CurrentUser.Id && f.Friend.Id == invitee.Id) ||
                 (f.User.Id == invitee.Id && f.Friend.Id == userResolver.CurrentUser.Id), 
@@ -91,11 +93,19 @@ internal static class FriendEndpoints
 
         if (existingInvite is not null)
         {
-            var response = new InviteFriendResponse
+            if (existingInvite.Status == FriendStatus.Rejected &&
+                existingInvite.Friend.Id == userResolver.CurrentUser.Id)
             {
-                Status = existingInvite.Status.ToString()
-            };
-            return TypedResults.Conflict(response);
+                context.Friends.Remove(existingInvite);
+            }
+            else
+            {
+                var response = new InviteFriendResponse
+                {
+                    Status = existingInvite.Status.ToString()
+                };
+                return TypedResults.Conflict(response);
+            }
         }
         
         var inviter = await context.Users.FirstAsync(
