@@ -21,19 +21,25 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Zamieniono napis 'MENU' na logo aplikacji
+              // Logo aplikacji jako przycisk przenoszący do głównego feedu
               Center(
-                child: Image.asset(
-                  'assets/images/appLogoDark.png',
-                  height: 40,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.go('/feed');
+                  },
+                  child: Image.asset(
+                    'assets/images/appLogoDark.png',
+                    height: 40,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
 
               ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.of(context).pop(); // zamknij drawer
-                  context.push('/likedEvents'); // przejdź do formularza
+                  Navigator.of(context).pop();
+                  context.push('/likedEvents');
                 },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Moje wydarzenia'),
@@ -70,8 +76,8 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
 
               ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.of(context).pop(); // zamknij drawer
-                  context.push('/getEvents'); // przejdź do formularza
+                  Navigator.of(context).pop();
+                  context.push('/getEvents');
                 },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Zakończone wydarzenia'),
@@ -89,8 +95,8 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
 
               ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.of(context).pop(); // zamknij drawer
-                  context.push('/createEvent'); // przejdź do formularza
+                  Navigator.of(context).pop();
+                  context.push('/createEvent');
                 },
                 icon: const Icon(Icons.add),
                 label: const Text('Dodaj wydarzenie'),
