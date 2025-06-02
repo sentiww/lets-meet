@@ -37,7 +37,8 @@ internal static class UserEndpoints
         var response = new GetUserResponse
         {
             Id = user.Id,
-            Username = user.Username
+            Username = user.Username,
+            AvatarId = user.AvatarId
         };
 
         return TypedResults.Ok(response);
