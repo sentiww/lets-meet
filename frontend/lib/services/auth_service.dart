@@ -4,7 +4,9 @@ import 'package:http/http.dart' as http;
 
 /// Service responsible for authentication logic (login, registration, tokens)
 class AuthService {
-  static const _baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:8080') + '/api/v1/auth';
+  static const _baseUrl = String.fromEnvironment('BASE_URL',
+      defaultValue: 'http://localhost:8080') +
+      '/api/v1/auth';
   static const _storage = FlutterSecureStorage();
 
   /// Sign in user with username and password
@@ -135,5 +137,26 @@ class AuthService {
     } catch (e) {
       return false;
     }
+  }
+
+  /// Decode JWT payload and extract user ID from "oid" claim (or "sub")
+  static Future<int?> getCurrentUserId() async {
+    final token = await getAccessToken();
+    if (token == null) return null;
+
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+
+    // Decode Base64Url payload
+    final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+    final Map<String, dynamic> jsonMap = jsonDecode(payload);
+
+    // JWT "oid" claim holds user ID; fallback to "sub"
+    if (jsonMap.containsKey('oid')) {
+      return int.tryParse(jsonMap['oid'].toString());
+    } else if (jsonMap.containsKey('sub')) {
+      return int.tryParse(jsonMap['sub'].toString());
+    }
+    return null;
   }
 }
