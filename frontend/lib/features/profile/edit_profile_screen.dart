@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lets_meet/models/blob.dart';
@@ -18,9 +19,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _surnameCtrl = TextEditingController();
-  final _usernameCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
-  final _confirmPasswordCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  DateTime? _dateOfBirth;
 
   File? _pickedImage;
   bool _loading = false;
@@ -29,10 +29,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUser(); // Load current user data on screen init
+    _loadUser();
   }
 
-  // Fetch current user from the backend
   Future<void> _loadUser() async {
     final user = await UserService.getCurrentUser();
     if (user != null) {
@@ -40,12 +39,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _user = user;
         _nameCtrl.text = user.name;
         _surnameCtrl.text = user.surname;
-        _usernameCtrl.text = user.username;
+        _emailCtrl.text = user.email ?? '';
+        _dateOfBirth = user.dateOfBirth;
       });
     }
   }
 
-  // Open image picker to select profile picture
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: source);
@@ -56,70 +55,104 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // Simulated save function (since no backend communication)
   Future<void> _submit() async {
-  if (!_formKey.currentState!.validate() || _user == null) return;
+    if (!_formKey.currentState!.validate() || _user == null) return;
 
-  setState(() => _loading = true);
+    setState(() => _loading = true);
 
-  try {
-    int? avatarId = _user!.avatarId;
+    try {
+      int? avatarId = _user!.avatarId;
 
-    if (_pickedImage != null) {
-      final bytes = await _pickedImage!.readAsBytes();
-      final filename = _pickedImage!.path.split('/').last;
-      final extension = filename.split('.').last;
+      if (_pickedImage != null) {
+        final bytes = await _pickedImage!.readAsBytes();
+        final filename = _pickedImage!.path.split('/').last;
+        final extension = filename.split('.').last;
 
-      final blobRequest = PostBlobRequest(
-        name: filename,
-        extension: extension,
-        contentType: 'image/$extension',
-        data: bytes,
-      );
-      // Upload new blob first
-      await BlobService.postBlob(blobRequest);
-      // Find out new avatar ID
-      List<BlobInfo> blobs = await BlobService.getBlobs();
-      final newAvatarId = blobs[blobs.length-1].id;
+        final blobRequest = PostBlobRequest(
+          name: filename,
+          extension: extension,
+          contentType: 'image/$extension',
+          data: bytes,
+        );
 
-      // Then safely delete the old blob (if any)
-      if (avatarId != null) {
-        await BlobService.deleteBlob(avatarId);
+        await BlobService.postBlob(blobRequest);
+        List<BlobInfo> blobs = await BlobService.getBlobs();
+        final newAvatarId = blobs.last.id;
+
+        if (avatarId != null) {
+          await BlobService.deleteBlob(avatarId);
+        }
+
+        avatarId = newAvatarId;
       }
 
-      avatarId = newAvatarId;
-    }
-
-    final success = await UserService.updateCurrentUser(
-      name: _nameCtrl.text.trim(),
-      surname: _surnameCtrl.text.trim(),
-      dateOfBirth: _user?.dateOfBirth ?? DateTime(2000),
-      email: _user!.email ?? '',
-      avatarId: avatarId,
-    );
-
-    setState(() => _loading = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(success ? 'Zapisano zmiany profilu' : 'Nie udało się zapisać zmian')),
+      final success = await UserService.updateCurrentUser(
+        name: _nameCtrl.text.trim(),
+        surname: _surnameCtrl.text.trim(),
+        dateOfBirth: _dateOfBirth ?? DateTime(2000),
+        email: _emailCtrl.text.trim(),
+        avatarId: avatarId,
       );
-    }
-  } catch (e) {
-    setState(() => _loading = false);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd: ${e.toString()}')),
-      );
+
+      setState(() => _loading = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(success ? 'Zapisano zmiany profilu' : 'Nie udało się zapisać zmian')),
+        );
+      }
+    } catch (e) {
+      setState(() => _loading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Błąd: ${e.toString()}')),
+        );
+      }
     }
   }
-}
 
+  Widget _buildProfileAvatar() {
+    if (_pickedImage != null) {
+      return CircleAvatar(
+        radius: 60,
+        backgroundImage: FileImage(_pickedImage!),
+      );
+    }
+
+    if (_user?.avatarId != null) {
+      return FutureBuilder<Uint8List>(
+        future: BlobService.getBlobData(_user!.avatarId!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.grey.shade300,
+              child: const CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasData) {
+            return CircleAvatar(
+              radius: 60,
+              backgroundImage: MemoryImage(snapshot.data!),
+            );
+          } else {
+            return const CircleAvatar(
+              radius: 60,
+              child: Icon(Icons.person, size: 60),
+            );
+          }
+        },
+      );
+    }
+
+    return const CircleAvatar(
+      radius: 60,
+      child: Icon(Icons.person, size: 60),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     if (_user == null) {
-      // Show loading spinner while user data is being fetched
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -141,18 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: Colors.grey.shade300,
-                      backgroundImage: _pickedImage != null
-                          ? FileImage(_pickedImage!)
-                          : (_user!.avatarUrl != null
-                          ? NetworkImage(_user!.avatarUrl!)
-                          : null) as ImageProvider<Object>?,
-                      child: _pickedImage == null && _user!.avatarUrl == null
-                          ? const Icon(Icons.person, size: 60, color: Colors.white)
-                          : null,
-                    ),
+                    _buildProfileAvatar(),
                     Positioned(
                       bottom: 0,
                       right: 0,
@@ -177,11 +199,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 12),
                       _buildField(_surnameCtrl, 'Nazwisko'),
                       const SizedBox(height: 12),
-                      _buildField(_usernameCtrl, 'Nazwa użytkownika'),
+                      _buildField(_emailCtrl, 'Email', keyboardType: TextInputType.emailAddress),
                       const SizedBox(height: 12),
-                      _buildField(_passwordCtrl, 'Nowe hasło (opcjonalnie)', obscureText: true),
-                      const SizedBox(height: 12),
-                      _buildField(_confirmPasswordCtrl, 'Powtórz hasło', obscureText: true),
+                      _buildDatePicker(context),
                       const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
@@ -196,11 +216,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           child: _loading
                               ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
                               : const Text('ZAPISZ', style: TextStyle(color: Colors.white, fontSize: 18)),
                         ),
                       ),
@@ -215,11 +234,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // Form field builder with validation for matching passwords only
-  Widget _buildField(TextEditingController controller, String hint, {bool obscureText = false}) {
+  Widget _buildField(TextEditingController controller, String hint,
+      {bool obscureText = false, TextInputType keyboardType = TextInputType.text}) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
@@ -231,20 +251,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       ),
       validator: (value) {
-        // Validate only if passwords are filled
-        if ((controller == _passwordCtrl || controller == _confirmPasswordCtrl) &&
-            _passwordCtrl.text.isNotEmpty) {
-          if (_confirmPasswordCtrl.text != _passwordCtrl.text) {
-            return 'Hasła muszą być takie same';
-          }
-        }
-
+        if (value == null || value.isEmpty) return 'To pole jest wymagane';
         return null;
       },
     );
   }
 
-  // Show modal bottom sheet to choose image source
+  Widget _buildDatePicker(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: _dateOfBirth ?? DateTime(2000),
+          firstDate: DateTime(1900),
+          lastDate: DateTime.now(),
+        );
+        if (picked != null) {
+          setState(() {
+            _dateOfBirth = picked;
+          });
+        }
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color(0xFFF3EFFF),
+          hintText: 'Data urodzenia',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+        child: Text(
+          _dateOfBirth != null
+              ? '${_dateOfBirth!.day.toString().padLeft(2, '0')}.${_dateOfBirth!.month.toString().padLeft(2, '0')}.${_dateOfBirth!.year}'
+              : 'Wybierz datę urodzenia',
+          style: const TextStyle(fontSize: 16),
+        ),
+      ),
+    );
+  }
+
   void _showImageSourceActionSheet() {
     showModalBottomSheet(
       context: context,
