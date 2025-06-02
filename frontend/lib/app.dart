@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lets_meet/features/auth/login_screen.dart';
 import 'package:lets_meet/features/auth/register_screen.dart';
+import 'package:lets_meet/features/chat/chat_conversation_screen.dart';
+import 'package:lets_meet/features/chat/chat_friend_list_screen.dart';
+import 'package:lets_meet/features/chat/chat_list_screen.dart';
 import 'package:lets_meet/features/events/feed_screen.dart';
 import 'package:lets_meet/features/profile/my_profile_screen.dart';
 import 'package:lets_meet/features/events/create_event_screen.dart';
@@ -43,6 +46,21 @@ final GoRouter _router = GoRouter(
       path: '/feed',
       name: 'feed',
       builder: (context, state) => const FeedScreen(),
+    ),
+    GoRoute(
+      path: '/chat_list',
+      name: 'chat_list',
+      builder: (context, state) => const ChatListScreen(),
+    ),
+    GoRoute(
+      path: '/chat_conversation',
+      name: 'chat_conversation',
+      builder: (context, state) => const ChatConversationScreen(),
+    ),
+    GoRoute(
+      path: '/chat_friend_list',
+      name: 'chat_friend_list',
+      builder: (context, state) => const ChatFriendListScreen(),
     ),
     GoRoute(
       path: '/profile',
