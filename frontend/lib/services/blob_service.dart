@@ -34,21 +34,40 @@ class BlobService {
     }
   }
 
-  static Future<Uint8List> getBlobData(int blobId) async {
-    final token = await _getToken();
-    final response = await http.get(
-      Uri.parse("$_baseUrl/$blobId"),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
+ static Future<Uint8List> getBlobData(int blobId) async {
+  final token = await _getToken();
+  final response = await http.get(
+    Uri.parse("$_baseUrl/$blobId"),
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
 
-    if (response.statusCode == 200) {
-      return response.bodyBytes; // ✅ Directly return the binary data
-    } else {
-      throw Exception('Błąd pobierania pliku: ${response.statusCode}');
+  if (response.statusCode == 200) {
+    try {
+      // Step 1: Convert raw bytes to a UTF-8 string
+      final jsonString = utf8.decode(response.bodyBytes);
+
+      // Step 2: Parse the JSON
+      final jsonMap = jsonDecode(jsonString);
+
+      // Step 3: Extract base64 data from "fileContents" key
+      final base64Data = jsonMap['fileContents'];
+
+      // Step 4: Clean and decode the base64 string
+      //final cleanedBase64 = base64Data.trim().replaceAll(RegExp(r'\s+'), '');
+      final decodedBytes = base64Decode(base64Data);
+
+      return decodedBytes;
+    } catch (e) {
+      print('Base64 decode error: $e');
+      throw Exception('Błąd konwersji pliku: ${e.toString()}');
     }
+  } else {
+    throw Exception('Błąd pobierania pliku: ${response.statusCode}');
   }
+}
+
 
 
   static Future<Widget> loadBlobImage(int blobId, {BoxFit fit = BoxFit.cover, double? width, double? height}) async {
@@ -64,32 +83,41 @@ class BlobService {
     return const Icon(Icons.broken_image, size: 48, color: Colors.grey);
   }
 }
-  static Widget buildProfileAvatar({required int? blobId, double radius = 90}) {
-    return FutureBuilder<Uint8List>(
-      future: blobId != null ? BlobService.getBlobData(blobId!) : null,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && blobId != null) {
-          return CircleAvatar(
-            radius: radius,
-            backgroundColor: Colors.grey.shade300,
-            child: const CircularProgressIndicator(),
-          );
-        } else if (snapshot.hasData) {
-          return CircleAvatar(
-            radius: radius,
-            backgroundColor: Colors.grey.shade300,
-            backgroundImage: MemoryImage(snapshot.data!),
-          );
-        } else {
-          return CircleAvatar(
-            radius: radius,
-            backgroundColor: Colors.grey.shade300,
-            child: const Icon(Icons.person, size: 60, color: Colors.white),
-          );
-        }
-      },
+ static Widget buildProfileAvatar({required int? blobId, double radius = 90}) {
+  if (blobId == null || blobId == 0) {
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.grey.shade300,
+      child: const Icon(Icons.person, size: 60, color: Colors.white),
     );
   }
+
+  return FutureBuilder<Uint8List>(
+    future: BlobService.getBlobData(blobId),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey.shade300,
+          child: const CircularProgressIndicator(),
+        );
+      } else if (snapshot.hasData) {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey.shade300,
+          backgroundImage: MemoryImage(snapshot.data!),
+        );
+      } else {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey.shade300,
+          child: const Icon(Icons.person, size: 60, color: Colors.white),
+        );
+      }
+    },
+  );
+}
+
   static Future<void> postBlob(PostBlobRequest request) async {
   final token = await _getToken();
 
