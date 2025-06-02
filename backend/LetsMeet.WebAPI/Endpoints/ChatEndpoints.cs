@@ -50,21 +50,25 @@ internal static class ChatEndpoints
         [FromServices] LetsMeetDbContext context)
     {
         var chat = await context.Chats
-            .Select(c => new GetChatResponse
+        .Where(c => c.Id == chatId)
+        .Include(c => c.Messages)
+        .Include(c => c.Users) 
+        .Select(c => new GetChatResponse
+        {
+            Id = c.Id,
+            Type = (int)c.Type,
+            Name = c.Name,
+            UserIds = c.Users.Select(u => u.Id),
+            Messages = c.Messages.Select(m => new GetChatResponse.Message
             {
-                Id = c.Id,
-                Type = (int)c.Type,
-                Name = c.Name,
-                UserIds = c.Users.Select(u => u.Id),
-                Messages = c.Messages.Select(m => new GetChatResponse.Message
-                {
-                    Id = m.Id,
-                    FromId = m.FromId,
-                    SentAt = m.SentAt,
-                    Content = m.Content
-                })
+                Id = m.Id,
+                FromId = m.FromId,
+                SentAt = m.SentAt,
+                Content = m.Content
             })
-            .FirstOrDefaultAsync(c => c.Id == chatId);
+        })
+        .FirstOrDefaultAsync();
+
 
         if (chat is null)
         {
