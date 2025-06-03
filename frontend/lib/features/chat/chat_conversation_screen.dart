@@ -42,7 +42,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     } catch (e) {
       if (e.toString().contains('Unauthorized')) {
         // W razie braku tokena przejdź do logowania
-        context.go('/');
+        context.goNamed('login');
       } else {
         print('[ChatConversation] Initialization error: $e');
       }
@@ -190,7 +190,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
     final fromId = await AuthService.getCurrentUserId();
     if (fromId == null) {
-      context.go('/');
+      context.goNamed('login');
       return;
     }
 
@@ -239,7 +239,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () {
-            context.go('/chat_list');
+            context.goNamed('chat_list');
           },
         ),
         title: Row(
@@ -253,8 +253,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             IconButton(
               icon: const Icon(Icons.person_outline, color: Colors.black54),
               onPressed: () {
-                // Przechodzimy do listy uczestników czatu:
-                context.go('/chat_friend_list/${widget.chatId}');
+                context.goNamed('chat_friend_list');
               },
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -310,8 +309,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       thumbVisibility: true,
                       child: ListView.separated(
                         controller: _scrollController,
-                        padding: const EdgeInsets.only(
-                            top: 16, bottom: 16),
+                        padding:
+                        const EdgeInsets.only(top: 16, bottom: 16),
                         itemCount: _messages.length,
                         separatorBuilder: (_, __) =>
                         const SizedBox(height: 12),
@@ -334,8 +333,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                             color: const Color(0xFFE0E0E0),
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           alignment: Alignment.centerLeft,
                           child: TextField(
                             controller: _messageController,
