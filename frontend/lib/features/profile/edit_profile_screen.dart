@@ -75,15 +75,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           data: bytes,
         );
 
-        await BlobService.postBlob(blobRequest);
-        List<BlobInfo> blobs = await BlobService.getBlobs();
-        final newAvatarId = blobs.last.id;
-
-        if (avatarId != null) {
-          await BlobService.deleteBlob(avatarId);
+        int? newAvatarId = await BlobService.postBlob(blobRequest);
+        try
+        {
+          if (avatarId != null && newAvatarId !=null) {
+            await BlobService.deleteBlob(avatarId);
+          }
         }
-
-        avatarId = newAvatarId;
+        catch(e)
+        {
+          print('Blob Remove exception:' +e.toString());
+        }
+        if(newAvatarId != null)
+        {
+          avatarId = newAvatarId;
+        }
       }
 
       final success = await UserService.updateCurrentUser(

@@ -63,10 +63,10 @@ class _GetEventsScreenState extends State<GetEventsScreen> {
                           padding: const EdgeInsets.only(bottom: 24),
                           child: EventCard(
                             eventId: event.id,
-                            title: event.title,
-                            location: 'Nieznana lokalizacja',
-                            dateTime: event.eventDate ?? DateTime.now(),
-                            imagePath: 'assets/images/eventPhotoDefault.png',
+                            //title: event.title,
+                            //location: 'Nieznana lokalizacja',
+                            //dateTime: event.eventDate ?? DateTime.now(),
+                            //imagePath: 'assets/images/eventPhotoDefault.png',
                           ),
                         );
                       }).toList(),

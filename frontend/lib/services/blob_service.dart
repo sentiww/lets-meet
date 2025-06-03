@@ -118,7 +118,7 @@ class BlobService {
   );
 }
 
-  static Future<void> postBlob(PostBlobRequest request) async {
+  static Future<int?> postBlob(PostBlobRequest request) async {
   final token = await _getToken();
 
   final uri = Uri.parse(_baseUrl);
@@ -149,7 +149,8 @@ class BlobService {
     if (response.body.isNotEmpty) {
       final json = jsonDecode(response.body);
       print('Decoded JSON: $json');
-      return json['id']; // assuming backend returns { id: int }
+      final id = json['newBlob']['id'];
+      return id; // assuming backend returns { id: int }
     }
   } else {
     throw Exception('Nie udało się wysłać bloba, status: ${response.statusCode}');

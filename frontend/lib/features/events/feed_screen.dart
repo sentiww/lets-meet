@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/feed_drawer.dart';
@@ -14,36 +16,55 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   FeedEvent? _currentEvent;
+  bool _showAd = false;  // czy pokazujemy reklamę?
   bool _isLoading = false;
   String? _error;
+
+  final Random _random = Random();
 
   @override
   void initState() {
     super.initState();
-    _loadNextEvent();
+    _loadNextItem();
   }
 
-  Future<void> _loadNextEvent() async {
+  Future<void> _loadNextItem() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
-    try {
-      final event = await FeedService.fetchFeedEvent();
+    // Losujemy czy reklama czy event, np. 25% szans na reklamę
+    _showAd = _random.nextDouble() < 0.25;
+
+    if (_showAd) {
+      // jeśli reklama, to nie ładujemy eventu
       setState(() {
-        _currentEvent = event;
         _isLoading = false;
       });
-    } catch (e) {
-      setState(() {
-        _error = 'Failed to load event';
-        _isLoading = false;
-      });
+    } else {
+      // ładujemy event
+      try {
+        final event = await FeedService.fetchFeedEvent();
+        setState(() {
+          _currentEvent = event;
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _error = 'Failed to load event';
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _likeCurrentEvent() async {
+    if (_showAd) {
+      // lajkujemy reklamę - traktujemy jak przewinięcie
+      await _loadNextItem();
+      return;
+    }
     if (_currentEvent == null) return;
 
     setState(() {
@@ -53,7 +74,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
     try {
       await FeedService.likeEvent(_currentEvent!.eventId);
-      await _loadNextEvent(); // Load a new event after liking
+      await _loadNextItem(); // Load a new event/reklamę po lajku
     } catch (e) {
       setState(() {
         _error = 'Failed to like event';
@@ -63,8 +84,8 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _dislikeCurrentEvent() async {
-    // Just load new event without liking
-    await _loadNextEvent();
+    // Od razu ładujemy nowy event/reklamę bez lajka
+    await _loadNextItem();
   }
 
   @override
@@ -75,19 +96,19 @@ class _FeedScreenState extends State<FeedScreen> {
       bodyContent = const Center(child: CircularProgressIndicator());
     } else if (_error != null) {
       bodyContent = Center(child: Text(_error!));
-    } else if (_currentEvent == null) {
+    } else if (!_showAd && _currentEvent == null) {
       bodyContent = const Center(child: Text('No more events'));
     } else {
-      // Show the event
+      // Pokazujemy albo event albo reklamę
       bodyContent = Column(
         children: [
-          EventCard(
-            eventId: _currentEvent!.eventId,
-            title: _currentEvent!.title,
-            location: 'Unknown location', // You can add location if you have it
-            dateTime: DateTime.now(), // You can update if eventDate is available
-            imagePath: 'assets/images/eventPhotoDefault.png', // You can map photos if needed
-          ),
+          if (_showAd)
+            _AdCard() // widget reklamy
+          else
+            EventCard(
+              eventId: _currentEvent!.eventId,
+              // inne parametry jeśli są potrzebne
+            ),
           const SizedBox(height: 24),
           _ActionButtons(
             onLike: _likeCurrentEvent,
@@ -130,6 +151,38 @@ class _FeedScreenState extends State<FeedScreen> {
         },
       ),
       bottomNavigationBar: const _BottomNavBar(currentIndex: 0),
+    );
+  }
+}
+
+// Prosty widget reklamy - obrazek o wymiarach zbliżonych do EventCard
+class _AdCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // Stylizacja podobna do EventCard, dostosuj wg potrzeby
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: AspectRatio(
+          aspectRatio: 16 / 9, // lub inny zbliżony do EventCard
+          child: Image.asset(
+            'assets/images/sample_ad.png', // podmień na swoją reklamę w assets
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
     );
   }
 }

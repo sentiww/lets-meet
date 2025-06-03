@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/event.dart';
 import '../../services/event_service.dart';
+import '../../services/blob_service.dart';
 import '../../widgets/feed_drawer.dart';
 
 class EventProfileScreen extends StatefulWidget {
@@ -70,6 +71,70 @@ class _EventProfileScreenState extends State<EventProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 30),
+                        if (_event!.photoIds == null || _event!.photoIds!.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: SizedBox(
+                                height: 200,
+                                width: 300,
+                                child: Image.asset(
+                                  'assets/images/eventPhotoDefault.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Center(
+                            child: SizedBox(
+                              height: 200,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                itemCount: _event!.photoIds!.length,
+                                separatorBuilder: (_, __) => const SizedBox(width: 16),
+                                itemBuilder: (context, index) {
+                                  final blobId = _event!.photoIds![index];
+                                  return FutureBuilder<Widget>(
+                                    future: BlobService.loadBlobImage(blobId,
+                                        fit: BoxFit.cover, width: 300, height: 200),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return Container(
+                                          width: 300,
+                                          height: 200,
+                                          color: Colors.grey.shade300,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      } else if (snapshot.hasError || !snapshot.hasData) {
+                                        return Container(
+                                          width: 300,
+                                          height: 200,
+                                          color: Colors.grey.shade300,
+                                          child: const Center(
+                                            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                                          ),
+                                        );
+                                      } else {
+                                        return ClipRRect(
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: SizedBox(
+                                            width: 300,
+                                            height: 200,
+                                            child: snapshot.data,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 30),
                         _ProfileInfoTile(
                           label: 'Tytuł wydarzenia',
                           value: _event!.title,
@@ -77,11 +142,12 @@ class _EventProfileScreenState extends State<EventProfileScreen> {
                         ),
                         _ProfileInfoTile(
                           label: 'Data wydarzenia',
-                          value:"${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
-                  "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
-                  "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
-                  "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
-                  "${_event!.eventDate!.minute.toString().padLeft(2, '0')}",
+                          value:
+                              "${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
+                              "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
+                              "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
+                              "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
+                              "${_event!.eventDate!.minute.toString().padLeft(2, '0')}",
                           icon: Icons.calendar_today,
                         ),
                         _ProfileInfoTile(
@@ -89,34 +155,6 @@ class _EventProfileScreenState extends State<EventProfileScreen> {
                           value: _event!.description ?? 'Brak opisu',
                           icon: Icons.description,
                         ),
-                        /*_ProfileInfoTile(
-                          label: 'Dodane przez',
-                          value: _event!.creatorUsername,
-                          icon: Icons.person,
-                        ),
-                        const SizedBox(height: 24),
-                        if (_event!.canEdit)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 32),
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                final updated = await context.push<bool>('/editEvent/${_event!.id}');
-                                if (updated == true) {
-                                  _loadEvent(); // odśwież dane
-                                }
-                              },
-                              icon: const Icon(Icons.edit),
-                              label: const Text('Edytuj wydarzenie'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF6A1B9A),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                ),
-                                minimumSize: const Size.fromHeight(50),
-                              ),
-                            ),
-                          ),*/
                       ],
                     ),
                   ),
