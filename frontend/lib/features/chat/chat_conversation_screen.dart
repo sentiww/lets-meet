@@ -35,14 +35,15 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
   Future<void> _initializeChat() async {
     try {
+      // 1) Pobierz początkowe wiadomości (REST)
       await _fetchInitialMessages();
+      // 2) Potem uruchom SignalR
       await _setupSignalR();
     } catch (e) {
       if (e.toString().contains('Unauthorized')) {
-        // If unauthorized, send the user back to login
+        // W razie braku tokena przejdź do logowania
         context.goNamed('login');
       } else {
-        // Otherwise, print the error for debugging
         print('[ChatConversation] Initialization error: $e');
       }
     } finally {
@@ -75,8 +76,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             .toList());
       });
       _scrollToBottom();
-      print('[ChatConversation] Loaded ${_messages.length} initial messages');
+      print('[ChatConversation] Załadowano ${_messages.length} wiadomości');
     } else if (response.statusCode == 401) {
+      // Jeśli token wygasł, próbuj odświeżyć
       final refreshed = await AuthService.refreshToken();
       if (!refreshed) throw Exception('Unauthorized');
       await _fetchInitialMessages();
@@ -89,12 +91,12 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     final token = await AuthService.getAccessToken();
     if (token == null) throw Exception('Unauthorized');
 
-    // NOTE: use the exact path your server maps for ChatHub.
-    // If your Program.cs does app.MapHub<ChatHub>("/hubs/chathub"),
-    // then this URL must be http://localhost:8080/hubs/chathub.
+    // *** WAŻNE: usuwamy ?chatId z URL-a ***
+    final hubUrl = 'http://localhost:8080/hubs/v1/chat';
+
     _hubConnection = HubConnectionBuilder()
         .withUrl(
-      'http://localhost:8080/hubs/chathub',
+      hubUrl,
       HttpConnectionOptions(
         accessTokenFactory: () async => token,
       ),
@@ -112,26 +114,34 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       print('[SignalR] Reconnected: $id');
     });
 
-    // Listen for “NewMessage” broadcasts
+    // Nasłuchujemy zdarzenia „NewMessage” (z ChatHub.UpdateAsync(...))
     _hubConnection.on('NewMessage', (arguments) async {
       print('[SignalR] Received NewMessage args: $arguments');
       if (arguments != null && arguments.length >= 2) {
-        final chatId = arguments[0] as int;
-        final messageId = arguments[1] as int;
-        if (chatId == widget.chatId) {
-          final newMsg = await _fetchSingleMessage(messageId);
+        // Argumenty: [chatId, messageId]
+        final rawChatId = arguments[0];
+        final rawMsgId = arguments[1];
+        final incomingChatId = (rawChatId is int)
+            ? rawChatId
+            : int.tryParse(rawChatId.toString());
+        final incomingMsgId = (rawMsgId is int)
+            ? rawMsgId
+            : int.tryParse(rawMsgId.toString());
+
+        if (incomingChatId == widget.chatId && incomingMsgId != null) {
+          final newMsg = await _fetchSingleMessage(incomingMsgId);
           setState(() {
             _messages.add(newMsg);
           });
           _scrollToBottom();
-          print('[ChatConversation] Appended new message ID $messageId');
+          print('[ChatConversation] Dodano wiadomość ID $incomingMsgId');
         }
       }
     });
 
-    print('[SignalR] Starting connection to chat ${widget.chatId}...');
+    print('[SignalR] Uruchamiam (WebSockets) połączenie do $hubUrl');
     await _hubConnection.start();
-    print('[SignalR] Connection state after start: ${_hubConnection.state}');
+    print('[SignalR] Stan po połączeniu: ${_hubConnection.state}');
   }
 
   Future<ChatMessage> _fetchSingleMessage(int messageId) async {
@@ -151,7 +161,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body) as Map<String, dynamic>;
-      print('[ChatConversation] Fetched single message: $data');
+      print('[ChatConversation] Pobrano pojedynczą wiadomość: $data');
       return ChatMessage.fromJson(data);
     } else if (response.statusCode == 401) {
       final refreshed = await AuthService.refreshToken();
@@ -178,37 +188,37 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    // AuthService currently has no getCurrentUserId; replace with your own logic
     final fromId = await AuthService.getCurrentUserId();
     if (fromId == null) {
       context.goNamed('login');
       return;
     }
 
-    print('[ChatConversation] Attempting to send message: "$content"');
+    print('[ChatConversation] Wysyłam: "$content"');
     if (_hubConnection.state != HubConnectionState.connected) {
-      print('[SignalR] Not connected, attempting to start...');
+      print('[SignalR] Nie jest połączone, próbuję uruchomić ponownie...');
       try {
         await _hubConnection.start();
       } catch (e) {
-        print('[SignalR] Failed to reconnect: $e');
+        print('[SignalR] Błąd podczas ponownego łączenia: $e');
       }
       if (_hubConnection.state != HubConnectionState.connected) {
-        print('[SignalR] Still not connected, abort send');
+        print('[SignalR] Nadal nie połączono, przerywam wysłanie');
         return;
       }
     }
 
     try {
+      // Tutaj wywołujemy metodę ChatHub.SendMessage(int chatId, int fromId, string content)
       await _hubConnection.invoke('SendMessage', args: [
         widget.chatId,
         fromId,
         content,
       ]);
-      print('[SignalR] invoke SendMessage succeeded');
+      print('[SignalR] invoke SendMessage powiodło się');
       _messageController.clear();
     } catch (e) {
-      print('[SignalR] ERROR when calling SendMessage: $e');
+      print('[SignalR] BŁĄD przy SendMessage: $e');
     }
   }
 
@@ -323,8 +333,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                             color: const Color(0xFFE0E0E0),
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           alignment: Alignment.centerLeft,
                           child: TextField(
                             controller: _messageController,
@@ -366,7 +375,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   }
 }
 
-/// Model pojedynczej wiadomości
 class ChatMessage {
   final int id;
   final int fromId;
