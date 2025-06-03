@@ -45,11 +45,15 @@ class _FriendListScreenState extends State<FriendListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< Updated upstream
       // Dodany boczny drawer
+=======
+>>>>>>> Stashed changes
       drawer: const FeedDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+<<<<<<< Updated upstream
         // Dajemy więcej miejsca na dwa ikonki
         leadingWidth: 80,
         // Pierwszy przycisk otwiera drawer, drugi cofa do feedu
@@ -70,6 +74,20 @@ class _FriendListScreenState extends State<FriendListScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black87),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+=======
+        leadingWidth: 80,
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.menu, color: Colors.black87),
+                onPressed: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+>>>>>>> Stashed changes
               onPressed: () {
                 context.go('/feed');
               },
@@ -78,6 +96,7 @@ class _FriendListScreenState extends State<FriendListScreen> {
         ),
         title: const Text(
           'Moi znajomi',
+<<<<<<< Updated upstream
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -86,6 +105,13 @@ class _FriendListScreenState extends State<FriendListScreen> {
         ),
         centerTitle: true,
       ),
+=======
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+>>>>>>> Stashed changes
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Center(
@@ -94,6 +120,7 @@ class _FriendListScreenState extends State<FriendListScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _friends.isEmpty
+<<<<<<< Updated upstream
                 ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -158,6 +185,52 @@ class _FriendListScreenState extends State<FriendListScreen> {
                         icon: const Icon(
                           Icons.remove_circle_outline,
                           color: Colors.white,
+=======
+                ? const Center(
+              child: Text('Brak znajomych'),
+            )
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              itemCount: _friends.length,
+              itemBuilder: (context, index) {
+                final friend = _friends[index];
+                final user = _friendUsers[friend.friendId];
+
+                return Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      leading: BlobService.buildProfileAvatar(
+                        blobId: user?.avatarId ?? 0,
+                      ),
+                      title: Text(
+                        user?.username ?? 'Nieznany użytkownik',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      subtitle: Text('ID: ${friend.friendId}'),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.red,
+>>>>>>> Stashed changes
                         ),
                         onPressed: () async {
                           await FriendService.removeFriend(
