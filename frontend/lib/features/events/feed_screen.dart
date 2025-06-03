@@ -281,10 +281,10 @@ class _BottomNavBar extends StatelessWidget {
       onTap: (index) {
         switch (index) {
           case 0:
-            // Already on feed
+          // Already on feed
             break;
           case 1:
-            // TODO: messages route
+            context.goNamed('chat_list');
             break;
           case 2:
             context.goNamed('profile');

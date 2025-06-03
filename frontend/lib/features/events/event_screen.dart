@@ -53,111 +53,129 @@ class _EventProfileScreenState extends State<EventProfileScreen> {
       ),
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _event == null
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _event == null
                 ? const Center(child: Text('Nie znaleziono wydarzenia'))
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 24),
-                        Center(
-                          child: Icon(
-                            Icons.event,
-                            size: 100,
-                            color: Colors.deepPurple.shade300,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        if (_event!.photoIds == null || _event!.photoIds!.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child: SizedBox(
-                                height: 200,
-                                width: 300,
-                                child: Image.asset(
-                                  'assets/images/eventPhotoDefault.png',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          Center(
-                            child: SizedBox(
-                              height: 200,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 24),
-                                itemCount: _event!.photoIds!.length,
-                                separatorBuilder: (_, __) => const SizedBox(width: 16),
-                                itemBuilder: (context, index) {
-                                  final blobId = _event!.photoIds![index];
-                                  return FutureBuilder<Widget>(
-                                    future: BlobService.loadBlobImage(blobId,
-                                        fit: BoxFit.cover, width: 300, height: 200),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return Container(
-                                          width: 300,
-                                          height: 200,
-                                          color: Colors.grey.shade300,
-                                          child: const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                        );
-                                      } else if (snapshot.hasError || !snapshot.hasData) {
-                                        return Container(
-                                          width: 300,
-                                          height: 200,
-                                          color: Colors.grey.shade300,
-                                          child: const Center(
-                                            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                                          ),
-                                        );
-                                      } else {
-                                        return ClipRRect(
-                                          borderRadius: BorderRadius.circular(16),
-                                          child: SizedBox(
-                                            width: 300,
-                                            height: 200,
-                                            child: snapshot.data,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 30),
-                        _ProfileInfoTile(
-                          label: 'Tytuł wydarzenia',
-                          value: _event!.title,
-                          icon: Icons.title,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'Data wydarzenia',
-                          value:
-                              "${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
-                              "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
-                              "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
-                              "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
-                              "${_event!.eventDate!.minute.toString().padLeft(2, '0')}",
-                          icon: Icons.calendar_today,
-                        ),
-                        _ProfileInfoTile(
-                          label: 'Opis',
-                          value: _event!.description ?? 'Brak opisu',
-                          icon: Icons.description,
-                        ),
-                      ],
+              padding: const EdgeInsets.only(bottom: 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
+                  Center(
+                    child: Icon(
+                      Icons.event,
+                      size: 100,
+                      color: Colors.deepPurple.shade300,
                     ),
                   ),
+                  const SizedBox(height: 30),
+                  if (_event!.photoIds == null || _event!.photoIds!.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: SizedBox(
+                          height: 200,
+                          width: 300,
+                          child: Image.asset(
+                            'assets/images/eventPhotoDefault.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Center(
+                      child: SizedBox(
+                        height: 200,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 24),
+                          itemCount: _event!.photoIds!.length,
+                          separatorBuilder: (_, __) =>
+                          const SizedBox(width: 16),
+                          itemBuilder: (context, index) {
+                            final blobId = _event!.photoIds![index];
+                            return FutureBuilder<Widget>(
+                              future: BlobService.loadBlobImage(
+                                  blobId,
+                                  fit: BoxFit.cover,
+                                  width: 300,
+                                  height: 200),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Container(
+                                    width: 300,
+                                    height: 200,
+                                    color: Colors.grey.shade300,
+                                    child: const Center(
+                                      child:
+                                      CircularProgressIndicator(),
+                                    ),
+                                  );
+                                } else if (snapshot.hasError ||
+                                    !snapshot.hasData) {
+                                  return Container(
+                                    width: 300,
+                                    height: 200,
+                                    color: Colors.grey.shade300,
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image,
+                                          size: 48,
+                                          color: Colors.grey),
+                                    ),
+                                  );
+                                } else {
+                                  return ClipRRect(
+                                    borderRadius:
+                                    BorderRadius.circular(16),
+                                    child: SizedBox(
+                                      width: 300,
+                                      height: 200,
+                                      child: snapshot.data,
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 30),
+                  _ProfileInfoTile(
+                    label: 'Tytuł wydarzenia',
+                    value: _event!.title,
+                    icon: Icons.title,
+                  ),
+                  _ProfileInfoTile(
+                    label: 'Data wydarzenia',
+                    value:
+                    "${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
+                        "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
+                        "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
+                        "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
+                        "${_event!.eventDate!.minute
+                        .toString()
+                        .padLeft(2, '0')}",
+                    icon: Icons.calendar_today,
+                  ),
+                  _ProfileInfoTile(
+                    label: 'Opis',
+                    value: _event!.description ?? 'Brak opisu',
+                    icon: Icons.description,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       bottomNavigationBar: const _BottomNavBar(currentIndex: 0),
     );
@@ -200,9 +218,13 @@ class _ProfileInfoTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 13, color: Colors.black54)),
                   const SizedBox(height: 4),
-                  Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  Text(value,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),

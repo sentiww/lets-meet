@@ -63,15 +63,29 @@ final GoRouter _router = GoRouter(
     ),
 
     GoRoute(
-      path: '/chat_friend_list',
+      path: '/chat_friend_list/:chatId',
       name: 'chat_friend_list',
-      builder: (context, state) => const ChatFriendListScreen(),
+      builder: (context, state) {
+        final chatIdStr = state.pathParameters['chatId']!;
+        final chatId = int.parse(chatIdStr);
+        return ChatFriendListScreen(chatId: chatId);
+      },
     ),
     GoRoute(
-      path: '/other-profile',
+      path: '/other-profile/:chatId/:userId',
       name: 'other_profile',
-      builder: (context, state) => const OtherUserProfileScreen(),
+      builder: (context, state) {
+        final chatIdStr = state.pathParameters['chatId']!;
+        final userIdStr = state.pathParameters['userId']!;
+        final chatId = int.parse(chatIdStr);
+        final userId = int.parse(userIdStr);
+        return OtherUserProfileScreen(
+          userId: userId,
+          chatId: chatId,
+        );
+      },
     ),
+
 
     GoRoute(
       path: '/profile',
@@ -84,9 +98,9 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const EditProfileScreen(),
     ),
     GoRoute(
-    path: '/createEvent',
-    name: 'createEvent',
-    builder: (context, state) => const CreateEventScreen(),
+      path: '/createEvent',
+      name: 'createEvent',
+      builder: (context, state) => const CreateEventScreen(),
     ),
     GoRoute(
       path: '/event/:id',
@@ -100,26 +114,26 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
-    path: '/getEvents',
-    name: 'getEvents',
-    builder: (context, state) => const GetEventsScreen(),
-    ),
-     GoRoute(
-    path: '/likedEvents',
-    name: 'likedEvents',
-    builder: (context, state) => const LikedEventsScreen(),
+      path: '/getEvents',
+      name: 'getEvents',
+      builder: (context, state) => const GetEventsScreen(),
     ),
     GoRoute(
-  path: '/friends',
-  builder: (context, state) => const FriendListScreen(),
-  ),
-  GoRoute(
-    path: '/friendRequests',
-    builder: (context, state) => const FriendRequestsScreen(),
-  ),
-  GoRoute(
-  path: '/addFriend',
-  builder: (context, state) => const SendFriendRequestScreen(),
-),
+      path: '/likedEvents',
+      name: 'likedEvents',
+      builder: (context, state) => const LikedEventsScreen(),
+    ),
+    GoRoute(
+      path: '/friends',
+      builder: (context, state) => const FriendListScreen(),
+    ),
+    GoRoute(
+      path: '/friendRequests',
+      builder: (context, state) => const FriendRequestsScreen(),
+    ),
+    GoRoute(
+      path: '/addFriend',
+      builder: (context, state) => const SendFriendRequestScreen(),
+    ),
   ],
 );
