@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:lets_meet/models/post_event_request.dart';
 import '../../services/event_service.dart';
 import '../../services/blob_service.dart';
+import '../../services/feed_service.dart';      // ← dodane
 import '../../widgets/feed_drawer.dart';
 import '../../models/post_blob_request.dart';
 
@@ -30,9 +31,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       type: FileType.image,
       withData: true,
     );
-    if (result != null) {
-      setState(() => _selectedImages.addAll(result.files));
-    }
+    if (result != null) setState(() => _selectedImages.addAll(result.files));
   }
 
   Future<Uint8List> _readFileBytes(PlatformFile file) async {
@@ -44,8 +43,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // 1) Wyślij pliki → blobIds
     List<int> blobIds = [];
-    for (var img in _selectedImages) {
+    for (final img in _selectedImages) {
       final bytes = await _readFileBytes(img);
       final ext = img.extension ?? 'jpg';
       final req = PostBlobRequest(
@@ -58,6 +58,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       if (id != null) blobIds.add(id);
     }
 
+    // 2) Stwórz event
     await EventService.postEvent(
       PostEventRequest(
         title: _title,
@@ -67,6 +68,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       ),
     );
 
+    // 3) Pobierz wszystkie wydarzenia i wybierz to z największym id
+    final allEvents = await EventService.getEvents();
+    if (allEvents.isNotEmpty) {
+      final newEvent = allEvents.reduce((a, b) => a.id > b.id ? a : b);
+      await FeedService.likeEvent(newEvent.id);
+    }
+
+    // 4) Zamknij ekran
     if (context.mounted) context.pop(true);
   }
 
@@ -84,6 +93,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateStr = DateFormat('dd.MM.yyyy').format(_selectedDate);
+
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       drawer: const FeedDrawer(),
@@ -124,7 +134,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Tytuł
                         _buildTextField(
                           label: 'Tytuł wydarzenia',
                           hint: 'Wpisz tytuł',
@@ -134,7 +143,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           theme: theme,
                         ),
                         const SizedBox(height: 16),
-                        // Opis
                         _buildTextField(
                           label: 'Opis',
                           hint: 'Wpisz opis',
@@ -143,7 +151,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           theme: theme,
                         ),
                         const SizedBox(height: 16),
-                        // Data
                         InkWell(
                           onTap: _pickDate,
                           borderRadius: BorderRadius.circular(12),
@@ -181,7 +188,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // Dodaj zdjęcia
                         OutlinedButton.icon(
                           onPressed: _pickImages,
                           icon: Icon(Icons.photo_library,
@@ -190,8 +196,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               style: TextStyle(
                                   color: theme.colorScheme.primary)),
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                                color: theme.colorScheme.primary),
+                            side:
+                            BorderSide(color: theme.colorScheme.primary),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -220,10 +226,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                     top: 4,
                                     right: 4,
                                     child: GestureDetector(
-                                      onTap: () {
-                                        setState(() =>
-                                            _selectedImages.remove(file));
-                                      },
+                                      onTap: () => setState(
+                                              () => _selectedImages.remove(file)),
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: Colors.black54,
@@ -243,13 +247,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           ),
                         ],
                         const SizedBox(height: 32),
-                        // Utwórz
                         ElevatedButton(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
                             shape: const StadiumBorder(),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 18),
+                            padding:
+                            const EdgeInsets.symmetric(vertical: 18),
                           ),
                           child: Text(
                             'Utwórz wydarzenie',
