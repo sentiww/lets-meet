@@ -39,10 +39,10 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.push('/getEvents');
+                  context.push('/likedEvents');
                 },
                 icon: const Icon(Icons.arrow_forward),
-                label: const Text('Wszystkie wydarzenia'),
+                label: const Text('Moje wydarzenia'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey.shade300,
                   foregroundColor: Colors.black,
@@ -77,7 +77,7 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.goNamed('completed_events');
+                  context.push('/getEvents');
                 },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Zakończone wydarzenia'),
