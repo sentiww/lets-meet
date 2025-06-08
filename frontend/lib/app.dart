@@ -64,15 +64,29 @@ final GoRouter _router = GoRouter(
     ),
 
     GoRoute(
-      path: '/chat_friend_list',
+      path: '/chat_friend_list/:chatId',
       name: 'chat_friend_list',
-      builder: (context, state) => const ChatFriendListScreen(),
+      builder: (context, state) {
+        final chatIdStr = state.pathParameters['chatId']!;
+        final chatId = int.parse(chatIdStr);
+        return ChatFriendListScreen(chatId: chatId);
+      },
     ),
     GoRoute(
-      path: '/other-profile',
+      path: '/other-profile/:chatId/:userId',
       name: 'other_profile',
-      builder: (context, state) => const OtherUserProfileScreen(),
+      builder: (context, state) {
+        final chatIdStr = state.pathParameters['chatId']!;
+        final userIdStr = state.pathParameters['userId']!;
+        final chatId = int.parse(chatIdStr);
+        final userId = int.parse(userIdStr);
+        return OtherUserProfileScreen(
+          userId: userId,
+          chatId: chatId,
+        );
+      },
     ),
+
 
     GoRoute(
       path: '/profile',

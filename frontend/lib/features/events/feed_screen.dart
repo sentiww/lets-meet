@@ -231,7 +231,7 @@ class _BottomNavBar extends StatelessWidget {
             // Already on feed
             break;
           case 1:
-            // TODO: messages route
+            context.goNamed('chat_list');
             break;
           case 2:
             context.goNamed('profile');
