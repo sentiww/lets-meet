@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/friend_service.dart';
 import '../../services/blob_service.dart';
-import '../../widgets/feed_drawer.dart';
+import '../../services/user_service.dart';       // ← dodane
 import '../../models/friend.dart';
+import '../../models/user.dart';                 // ← dodane
+import '../../widgets/feed_drawer.dart';
 
 class FriendRequestsScreen extends StatefulWidget {
   const FriendRequestsScreen({super.key});
@@ -15,6 +17,7 @@ class FriendRequestsScreen extends StatefulWidget {
 class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
   bool _loading = true;
   List<Friend> _invites = [];
+  final Map<int, String> _usernames = {};  // map userId → username
 
   @override
   void initState() {
@@ -23,8 +26,14 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
   }
 
   Future<void> _loadInvites() async {
+    setState(() => _loading = true);
     try {
       final invites = await FriendService.getInvites();
+      // Pobierz username dla każdego zaproszenia
+      for (final invite in invites) {
+        final User? user = await UserService.getUserById(invite.userId);
+        _usernames[invite.userId] = user?.username ?? 'Nieznany użytkownik';
+      }
       setState(() {
         _invites = invites;
         _loading = false;
@@ -32,7 +41,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
     } catch (e) {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text('Błąd: $e')),
       );
     }
   }
@@ -41,50 +50,28 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const FeedDrawer(),
-
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 80, // zwiększona szerokość
-        leading: SizedBox(
-          width: 80,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-                icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 24),
-                onPressed: () {
-                  context.goNamed('feed');
-                },
-              ),
-              Builder(
-                builder: (ctx) => IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-                  icon: const Icon(Icons.menu, color: Colors.black87, size: 24),
-                  onPressed: () {
-                    Scaffold.of(ctx).openDrawer();
-                  },
-                ),
-              ),
-            ],
+        // tylko ikona menu
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text(
-          'Zaproszenia do znajomych',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+        // tapowalne logo w środku
+        title: GestureDetector(
+          onTap: () => context.go('/feed'),
+          child: Image.asset(
+            'assets/images/appLogoDark.png',
+            height: 32,
+            fit: BoxFit.contain,
           ),
         ),
         centerTitle: true,
       ),
-
       backgroundColor: const Color(0xFFF5F5F5),
-
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -118,6 +105,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
               itemCount: _invites.length,
               itemBuilder: (context, index) {
                 final invite = _invites[index];
+                final username = _usernames[invite.userId]!;
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 8),
@@ -134,13 +122,12 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                       ],
                     ),
                     child: ListTile(
-                      contentPadding:
-                      const EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       leading:
                       BlobService.buildProfileAvatar(blobId: 0),
                       title: Text(
-                        'Użytkownik #${invite.userId}',
+                        username,  // ← teraz wyświetla nazwę użytkownika
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

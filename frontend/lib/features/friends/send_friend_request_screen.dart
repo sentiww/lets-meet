@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/friend_service.dart';
 import '../../services/blob_service.dart';
-import '../../services/user_service.dart';
 import '../../models/user.dart';
 import '../../widgets/feed_drawer.dart';
 
@@ -24,7 +23,6 @@ class _SendFriendRequestScreenState extends State<SendFriendRequestScreen> {
     if (query.isEmpty) return;
 
     setState(() => _loading = true);
-
     try {
       // final users = await UserService.searchUsers(query); // Uncomment when ready
       setState(() {
@@ -58,27 +56,21 @@ class _SendFriendRequestScreenState extends State<SendFriendRequestScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 100,
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black87),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () {
-                context.go('/feed');
-              },
-            ),
-          ],
+        // Tylko ikona menu po lewej
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
         ),
-        title: const Text(
-          'Dodaj znajomego',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        // Logo na środku, tap przenosi do feedu
+        title: GestureDetector(
+          onTap: () => context.go('/feed'),
+          child: Image.asset(
+            'assets/images/appLogoDark.png',
+            height: 32,
+            fit: BoxFit.contain,
+          ),
         ),
         centerTitle: true,
       ),
@@ -92,7 +84,7 @@ class _SendFriendRequestScreenState extends State<SendFriendRequestScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Manual Friend ID Entry
+                  // Ręczne ID
                   Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
@@ -167,7 +159,7 @@ class _SendFriendRequestScreenState extends State<SendFriendRequestScreen> {
                   const Divider(thickness: 1, height: 0),
                   const SizedBox(height: 24),
 
-                  // Search Field
+                  // Pole szukania
                   TextField(
                     controller: _searchController,
                     textInputAction: TextInputAction.search,
@@ -178,20 +170,18 @@ class _SendFriendRequestScreenState extends State<SendFriendRequestScreen> {
                       const Icon(Icons.search, color: Color(0xFF6A1B9A)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                        const BorderSide(color: Color(0xFF6A1B9A)),
+                        borderSide: const BorderSide(color: Color(0xFF6A1B9A)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                        const BorderSide(color: Color(0xFF6A1B9A)),
+                        borderSide: const BorderSide(color: Color(0xFF6A1B9A)),
                       ),
                     ),
                     onSubmitted: (_) => _searchUsers(),
                   ),
                   const SizedBox(height: 16),
 
-                  // Results List
+                  // Wyniki
                   _loading
                       ? const Center(child: CircularProgressIndicator())
                       : Expanded(
