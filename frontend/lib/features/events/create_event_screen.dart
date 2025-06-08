@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart'; // ⬅️ ADDED
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:lets_meet/models/post_event_request.dart';
 import '../../services/event_service.dart';
-import '../../services/blob_service.dart'; // ⬅️ ADDED
+import '../../services/blob_service.dart';
 import '../../widgets/feed_drawer.dart';
 import '../../models/post_blob_request.dart';
 
@@ -21,53 +22,40 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   String _title = '';
   String _description = '';
   DateTime _selectedDate = DateTime.now();
-
-  List<PlatformFile> _selectedImages = []; // ⬅️
+  List<PlatformFile> _selectedImages = [];
 
   Future<void> _pickImages() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.image,
-      withData: true, // ważne, żeby mieć bytes
+      withData: true,
     );
     if (result != null) {
-      setState(() {
-        _selectedImages.addAll(result.files);
-      });
+      setState(() => _selectedImages.addAll(result.files));
     }
   }
 
   Future<Uint8List> _readFileBytes(PlatformFile file) async {
-    if (file.bytes != null) {
-      return file.bytes!;
-    } else if (file.path != null) {
-      final fileBytes = await File(file.path!).readAsBytes();
-      return fileBytes;
-    } else {
-      throw Exception('Nie można odczytać pliku ${file.name}');
-    }
+    if (file.bytes != null) return file.bytes!;
+    if (file.path != null) return await File(file.path!).readAsBytes();
+    throw Exception('Nie można odczytać pliku ${file.name}');
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     List<int> blobIds = [];
-
-    for (var image in _selectedImages) {
-      final bytes = await _readFileBytes(image);
-      final extension = image.extension ?? 'jpg';
-
-      final blobRequest = PostBlobRequest(
-        name: image.name,
-        extension: extension,
-        contentType: 'image/$extension',
+    for (var img in _selectedImages) {
+      final bytes = await _readFileBytes(img);
+      final ext = img.extension ?? 'jpg';
+      final req = PostBlobRequest(
+        name: img.name,
+        extension: ext,
+        contentType: 'image/$ext',
         data: bytes,
       );
-
-      final blobId = await BlobService.postBlob(blobRequest);
-      if (blobId != null) {
-        blobIds.add(blobId);
-      }
+      final id = await BlobService.postBlob(req);
+      if (id != null) blobIds.add(id);
     }
 
     await EventService.postEvent(
@@ -79,9 +67,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       ),
     );
 
-    if (context.mounted) {
-      context.pop(true); // return success
-    }
+    if (context.mounted) context.pop(true);
   }
 
   Future<void> _pickDate() async {
@@ -91,154 +77,221 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-      });
-    }
+    if (date != null) setState(() => _selectedDate = date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateStr = DateFormat('dd.MM.yyyy').format(_selectedDate);
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       drawer: const FeedDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+          builder: (ctx) => IconButton(
+            icon: Icon(Icons.menu, color: theme.colorScheme.onBackground),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text('Nowe wydarzenie', style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              context.go('/feed'); // Powrót do ekranu Feed
-            },
+        title: GestureDetector(
+          onTap: () => context.go('/feed'),
+          child: Image.asset(
+            'assets/images/appLogoDark.png',
+            height: 32,
+            fit: BoxFit.contain,
           ),
-        ],
+        ),
+        centerTitle: true,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                _TextFieldTile(
-                  label: 'Tytuł wydarzenia',
-                  hintText: 'Wpisz tytuł',
-                  onChanged: (val) => _title = val,
-                  validator: (val) => val == null || val.isEmpty ? 'Wymagane' : null,
-                ),
-                _TextFieldTile(
-                  label: 'Opis',
-                  hintText: 'Wpisz opis',
-                  maxLines: 4,
-                  onChanged: (val) => _description = val,
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  leading: const Icon(Icons.calendar_today, color: Color(0xFF6A1B9A)),
-                  title: const Text('Data wydarzenia'),
-                  subtitle: Text('${_selectedDate.toLocal()}'.split(' ')[0]),
-                  onTap: _pickDate,
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ElevatedButton.icon(
-                    onPressed: _pickImages,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Dodaj zdjęcia'),
-                  ),
-                ),
-                if (_selectedImages.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _selectedImages.map((file) {
-                      return Stack(
-                        children: [
-                          Image.memory(
-                            file.bytes ?? Uint8List(0),
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedImages.remove(file);
-                                });
-                              },
-                              child: const Icon(Icons.cancel, color: Colors.red),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Card(
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24)),
+              elevation: 6,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 32),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Tytuł
+                        _buildTextField(
+                          label: 'Tytuł wydarzenia',
+                          hint: 'Wpisz tytuł',
+                          onChanged: (v) => _title = v,
+                          validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wymagane' : null,
+                          theme: theme,
+                        ),
+                        const SizedBox(height: 16),
+                        // Opis
+                        _buildTextField(
+                          label: 'Opis',
+                          hint: 'Wpisz opis',
+                          onChanged: (v) => _description = v,
+                          maxLines: 4,
+                          theme: theme,
+                        ),
+                        const SizedBox(height: 16),
+                        // Data
+                        InkWell(
+                          onTap: _pickDate,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 20),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.calendar_today_outlined,
+                                    color: theme.colorScheme.primary),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Data wydarzenia',
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                            color: theme.colorScheme
+                                                .onSurfaceVariant)),
+                                    const SizedBox(height: 4),
+                                    Text(dateStr,
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                            fontWeight:
+                                            FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Dodaj zdjęcia
+                        OutlinedButton.icon(
+                          onPressed: _pickImages,
+                          icon: Icon(Icons.photo_library,
+                              color: theme.colorScheme.primary),
+                          label: Text('Dodaj zdjęcia',
+                              style: TextStyle(
+                                  color: theme.colorScheme.primary)),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                                color: theme.colorScheme.primary),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16),
+                          ),
+                        ),
+                        if (_selectedImages.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: _selectedImages.map((file) {
+                              return Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.memory(
+                                      file.bytes ?? Uint8List(0),
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() =>
+                                            _selectedImages.remove(file));
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.close,
+                                          size: 18,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
                         ],
-                      );
-                    }).toList(),
-                  ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6A1B9A),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
+                        const SizedBox(height: 32),
+                        // Utwórz
+                        ElevatedButton(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 18),
+                          ),
+                          child: Text(
+                            'Utwórz wydarzenie',
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(color: Colors.deepPurple),
+                          ),
+                        ),
+                      ],
                     ),
-                    minimumSize: const Size.fromHeight(50),
                   ),
-                  child: const Text('Utwórz wydarzenie'),
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
-}
 
-class _TextFieldTile extends StatelessWidget {
-  final String label;
-  final String hintText;
-  final int maxLines;
-  final FormFieldValidator<String>? validator;
-  final ValueChanged<String> onChanged;
-
-  const _TextFieldTile({
-    required this.label,
-    required this.hintText,
-    required this.onChanged,
-    this.maxLines = 1,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hintText,
-          filled: true,
-          fillColor: const Color(0xFFF1E8F8),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    required ValueChanged<String> onChanged,
+    FormFieldValidator<String>? validator,
+    int maxLines = 1,
+    required ThemeData theme,
+  }) {
+    return TextFormField(
+      onChanged: onChanged,
+      validator: validator,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        filled: true,
+        fillColor: theme.colorScheme.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
-        maxLines: maxLines,
-        validator: validator,
-        onChanged: onChanged,
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

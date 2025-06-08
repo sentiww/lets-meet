@@ -77,7 +77,7 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.push('/getEvents');
+                  context.push('/completedEvents');
                 },
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Zakończone wydarzenia'),

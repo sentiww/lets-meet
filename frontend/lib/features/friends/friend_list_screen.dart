@@ -59,27 +59,21 @@ class _FriendListScreenState extends State<FriendListScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 80,
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Builder(
-              builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black87),
-                onPressed: () => Scaffold.of(ctx).openDrawer(),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () {
-                context.go('/feed');
-              },
-            ),
-          ],
+        // Tylko ikona menu po lewej
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
         ),
-        title: const Text(
-          'Moi znajomi',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        // Logo w centrum, tap przenosi na główny feed
+        title: GestureDetector(
+          onTap: () => context.go('/feed'),
+          child: Image.asset(
+            'assets/images/applogoDark.png',
+            height: 32,
+            fit: BoxFit.contain,
+          ),
         ),
         centerTitle: true,
       ),
@@ -103,8 +97,8 @@ class _FriendListScreenState extends State<FriendListScreen> {
                 final user = _friendUsers[friend.friendId];
 
                 return Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -118,8 +112,8 @@ class _FriendListScreenState extends State<FriendListScreen> {
                       ],
                     ),
                     child: ListTile(
-                      contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       leading: BlobService.buildProfileAvatar(
                         blobId: user?.avatarId ?? 0,
                       ),
@@ -138,7 +132,8 @@ class _FriendListScreenState extends State<FriendListScreen> {
                           color: Colors.red,
                         ),
                         onPressed: () async {
-                          await FriendService.removeFriend(friend.friendId);
+                          await FriendService
+                              .removeFriend(friend.friendId);
                           _loadFriends();
                         },
                       ),
