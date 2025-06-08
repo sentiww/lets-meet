@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/event.dart';
 import '../../services/event_service.dart';
 import '../../services/feed_service.dart';
-import '../../services/auth_service.dart';
 import '../../widgets/event_card.dart';
 import '../../widgets/feed_drawer.dart';
 
@@ -23,21 +23,20 @@ class _LikedEventsScreenState extends State<LikedEventsScreen> {
   }
 
   Future<List<Event>> _loadLikedEvents() async {
-    try {
-      final likedIds = await FeedService.fetchLikedEventIds();
+    final now = DateTime.now();
+    final likedIds = await FeedService.fetchLikedEventIds();
+    final events = <Event>[];
 
-      final events = <Event>[];
-      for (final id in likedIds) {
-        final event = await EventService.getEvent(id);
-        if (event != null) {
-          events.add(event);
-        }
+    for (final id in likedIds) {
+      final event = await EventService.getEvent(id);
+      if (event != null
+          && event.eventDate != null
+          && event.eventDate!.isAfter(now)) {
+        events.add(event);
       }
-
-      return events;
-    } catch (e) {
-      rethrow;
     }
+
+    return events;
   }
 
   @override
@@ -48,12 +47,19 @@ class _LikedEventsScreenState extends State<LikedEventsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Builder(
-          builder: (context) => IconButton(
+          builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.black87),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text('Polubione wydarzenia', style: TextStyle(color: Colors.black)),
+        title: GestureDetector(
+          onTap: () => context.go('/feed'),
+          child: Image.asset(
+            'assets/images/appLogoDark.png',
+            height: 32,
+            fit: BoxFit.contain,
+          ),
+        ),
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFF5F5F5),
@@ -70,24 +76,17 @@ class _LikedEventsScreenState extends State<LikedEventsScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Błąd: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Brak polubionych wydarzeń'));
+                    return const Center(child: Text('Brak nadchodzących polubionych wydarzeń'));
                   }
 
                   final events = snapshot.data!;
-
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Column(
                       children: events.map((event) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 24),
-                          child: EventCard(
-                            eventId: event.id,
-                            //title: event.title,
-                            //location: 'Nieznana lokalizacja',
-                            //dateTime: event.eventDate ?? DateTime.now(),
-                            //imagePath: 'assets/images/eventPhotoDefault.png',
-                          ),
+                          child: EventCard(eventId: event.id),
                         );
                       }).toList(),
                     ),

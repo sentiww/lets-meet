@@ -6,6 +6,7 @@ import 'package:lets_meet/features/chat/chat_conversation_screen.dart';
 import 'package:lets_meet/features/chat/chat_friend_list_screen.dart';
 import 'package:lets_meet/features/chat/chat_list_screen.dart';
 import 'package:lets_meet/features/chat/other_user_profile_screen.dart';
+import 'package:lets_meet/features/events/completed_liked_events_screen.dart';
 import 'package:lets_meet/features/events/feed_screen.dart';
 import 'package:lets_meet/features/profile/my_profile_screen.dart';
 import 'package:lets_meet/features/events/create_event_screen.dart';
@@ -122,6 +123,11 @@ final GoRouter _router = GoRouter(
       path: '/likedEvents',
       name: 'likedEvents',
       builder: (context, state) => const LikedEventsScreen(),
+    ),
+    GoRoute(
+      path: '/completedEvents',
+      name: 'completedEvents',
+      builder: (context, state) => const CompletedEventsScreen(),
     ),
     GoRoute(
       path: '/friends',
