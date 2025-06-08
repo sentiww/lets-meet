@@ -19,6 +19,7 @@ internal static class UserEndpoints
         userGroup.MapPut("me", PutMeEndpointHandler);
         userGroup.MapGet("{id:int}", GetUserEndpointHandler);
         userGroup.MapPut("{id:int}/toggle-ban", ToggleBanUserEndpointHandler);
+        userGroup.MapGet(String.Empty, GetUsersEndpointHandler);
         
         return routeBuilder;
     }
@@ -44,6 +45,26 @@ internal static class UserEndpoints
         return TypedResults.Ok(response);
     }
     
+private static async Task<Ok<GetUsersResponse>> GetUsersEndpointHandler(
+    [FromServices] LetsMeetDbContext context)
+{
+    var users = await context.Users
+        .Select(u => new GetUsersResponse.User
+        {
+            Id = u.Id,
+            Username = u.Username
+        })
+        .ToListAsync();
+
+    var response = new GetUsersResponse
+    {
+        Users = users
+    };
+
+    return TypedResults.Ok(response);
+}
+
+    
     private static async Task<Ok> PutMeEndpointHandler(
         [FromBody] PutMeRequest request,
         [FromServices] LetsMeetDbContext context,
@@ -59,7 +80,7 @@ internal static class UserEndpoints
         user.AvatarId = request.AvatarId;
 
         await context.SaveChangesAsync(cancellationToken);
-        
+
         return TypedResults.Ok();
     }
 
