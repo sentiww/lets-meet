@@ -28,6 +28,7 @@ public sealed class ChatHub : Hub, IChatSubscriber
         CancellationToken cancellationToken = default)
     {
         var chat = await _context.Chats
+            .Include(chat => chat.Users)
             .FirstOrDefaultAsync(c => c.Id == chatId && c.Users.Any(u => u.Id == fromId), cancellationToken);
 
         if (chat is null)
