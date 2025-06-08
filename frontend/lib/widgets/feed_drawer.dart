@@ -34,25 +34,7 @@ class _FeedDrawerState extends State<FeedDrawer> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
 
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.push('/likedEvents');
-                },
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('Moje wydarzenia'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade300,
-                  foregroundColor: Colors.black,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  minimumSize: const Size.fromHeight(48),
-                ),
-              ),
               const SizedBox(height: 12),
 
               ElevatedButton.icon(
