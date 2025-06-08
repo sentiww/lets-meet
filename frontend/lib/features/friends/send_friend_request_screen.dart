@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../services/friend_service.dart';
 import '../../services/blob_service.dart';
 import '../../services/user_service.dart';
 import '../../models/user.dart';
-import '../../widgets/feed_drawer.dart';
+import '../../widgets/bottom_nav_bar.dart';
 
 class SendFriendRequestScreen extends StatefulWidget {
   const SendFriendRequestScreen({super.key});
@@ -33,213 +32,106 @@ class _SendFriendRequestScreenState extends State<SendFriendRequestScreen> {
       });
     } catch (e) {
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Błąd: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd: $e')));
     }
   }
 
   Future<void> _sendInvite(int friendId) async {
     try {
-      await FriendService.sendInvite(friendId);
+      await FriendService.sendInvite(friendId); // friendId as string
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Zaproszenie wysłane')),
       );
       _manualController.clear();
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Błąd: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const FeedDrawer(),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leadingWidth: 100,
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+      appBar: AppBar(title: const Text('Dodaj znajomego')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black87),
-                onPressed: () => Scaffold.of(context).openDrawer(),
+            // Manual Friend ID Entry
+            const Text(
+              'Wyślij zaproszenie ręcznie (friendId):',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _manualController,
+                    decoration: const InputDecoration(
+                      hintText: 'Wpisz friendId',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    try
+                    {
+                      final friendId = int.parse(_manualController.text.trim());
+                      _sendInvite(friendId);
+                    }
+                     catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd: $e')));
+                    }
+                  },
+                  child: const Text('Wyślij'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 8),
+
+            // Search Field
+            TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                labelText: 'Szukaj po nazwie użytkownika',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: _searchUsers,
+                ),
+                border: const OutlineInputBorder(),
               ),
+              onSubmitted: (_) => _searchUsers(),
             ),
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () {
-                context.go('/feed');
-              },
-            ),
-          ],
-        ),
-        title: const Text(
-          'Dodaj znajomego',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Manual Friend ID Entry
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Wyślij zaproszenie ręcznie (ID):',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF6A1B9A),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _manualController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Wpisz ID użytkownika',
-                                    prefixIcon: const Icon(Icons.person_outline,
-                                        color: Color(0xFF6A1B9A)),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                          color: Color(0xFF6A1B9A)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                          color: Color(0xFF6A1B9A)),
-                                    ),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton(
-                                onPressed: () {
-                                  try {
-                                    final friendId = int.parse(
-                                        _manualController.text.trim());
-                                    _sendInvite(friendId);
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Błąd: $e')),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6A1B9A),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 16),
-                                ),
-                                child:
-                                const Icon(Icons.send, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Divider(thickness: 1, height: 0),
-                  const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-                  // Search Field
-                  TextField(
-                    controller: _searchController,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      labelText: 'Szukaj użytkownika',
-                      labelStyle: const TextStyle(color: Color(0xFF6A1B9A)),
-                      prefixIcon:
-                      const Icon(Icons.search, color: Color(0xFF6A1B9A)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                        const BorderSide(color: Color(0xFF6A1B9A)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                        const BorderSide(color: Color(0xFF6A1B9A)),
-                      ),
-                    ),
-                    onSubmitted: (_) => _searchUsers(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Results List
-                  _loading
-                      ? const Center(child: CircularProgressIndicator())
-                      : Expanded(
-                    child: _results.isEmpty
-                        ? Center(
-                      child: Text(
-                        'Brak wyników',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    )
-                        : ListView.separated(
+            // Results List
+            _loading
+                ? const Center(child: CircularProgressIndicator())
+                : Expanded(
+                    child: ListView.builder(
                       itemCount: _results.length,
-                      separatorBuilder: (_, __) =>
-                      const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final user = _results[index];
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 2,
-                          child: ListTile(
-                            leading: BlobService.buildProfileAvatar(
-                              blobId: user.avatarId,
-                            ),
-                            title: Text(
-                              '${user.name} ${user.surname}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text('@${user.username}'),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.person_add,
-                                  color: Colors.green),
-                              onPressed: () => _sendInvite(user.id),
-                            ),
+                        return ListTile(
+                          leading: BlobService.buildProfileAvatar(blobId: user.avatarId),
+                          title: Text('${user.name} ${user.surname} (@${user.username})'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.person_add, color: Colors.green),
+                            onPressed: () => {}, //_sendInvite(user.id.toString()),
                           ),
                         );
                       },
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
+          ],
         ),
       ),
     );

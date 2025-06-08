@@ -40,17 +40,19 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // 1. Dodajemy boczne menu
       drawer: const FeedDrawer(),
 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 80, // zwiększona szerokość
+        // 2. Wprowadzone ograniczenie szerokości leading-a, aby nie było overflowu:
         leading: SizedBox(
-          width: 80,
+          width: 72,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // strzałka powrotu
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -59,6 +61,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                   context.goNamed('feed');
                 },
               ),
+              // hamburger otwierający drawer
               Builder(
                 builder: (ctx) => IconButton(
                   padding: EdgeInsets.zero,
@@ -88,6 +91,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
+            // 3. Responsywność: ograniczamy maksymalną szerokość do 600
             constraints: const BoxConstraints(maxWidth: 600),
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
