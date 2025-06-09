@@ -7,7 +7,6 @@ import '../../widgets/feed_drawer.dart';
 
 class EventProfileScreen extends StatefulWidget {
   final int eventId;
-
   const EventProfileScreen({super.key, required this.eventId});
 
   @override
@@ -25,219 +24,200 @@ class _EventProfileScreenState extends State<EventProfileScreen> {
   }
 
   Future<void> _loadEvent() async {
-    final event = await EventService.getEvent(widget.eventId);
+    final e = await EventService.getEvent(widget.eventId);
     setState(() {
-      _event = event;
+      _event = e;
       _loading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       drawer: const FeedDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87, size: 28),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: Image.asset(
-          'assets/images/appLogoDark.png',
-          height: 40,
-        ),
+        title: Image.asset('assets/images/appLogoDark.png', height: 40),
         centerTitle: true,
       ),
-      backgroundColor: const Color(0xFFF5F5F5),
+
+      backgroundColor: theme.colorScheme.surface,
+
+      // GŁÓWNA ZAWARTOŚĆ
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _event == null
-                ? const Center(child: Text('Nie znaleziono wydarzenia'))
-                : SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  Center(
-                    child: Icon(
-                      Icons.event,
-                      size: 100,
-                      color: Colors.deepPurple.shade300,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  if (_event!.photoIds == null || _event!.photoIds!.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _event == null
+                    ? const Center(child: Text('Nie znaleziono wydarzenia'))
+                    : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // HERO IMAGE
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
                         child: SizedBox(
-                          height: 200,
-                          width: 300,
-                          child: Image.asset(
+                          height: 220,
+                          child: (_event!.photoIds?.isNotEmpty ?? false)
+                              ? FutureBuilder<Widget>(
+                            future: BlobService.loadBlobImage(
+                              _event!.photoIds!.first,
+                              width: double.infinity,
+                              height: 220,
+                              fit: BoxFit.cover,
+                            ),
+                            builder: (ctx, snap) {
+                              if (snap.connectionState == ConnectionState.waiting) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Center(child: CircularProgressIndicator()),
+                                );
+                              }
+                              if (snap.hasError || snap.data == null) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Center(
+                                    child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                                  ),
+                                );
+                              }
+                              return snap.data!;
+                            },
+                          )
+                              : Image.asset(
                             'assets/images/eventPhotoDefault.png',
                             fit: BoxFit.cover,
+                            width: double.infinity,
                           ),
                         ),
                       ),
-                    )
-                  else
-                    Center(
-                      child: SizedBox(
-                        height: 200,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 24),
-                          itemCount: _event!.photoIds!.length,
-                          separatorBuilder: (_, __) =>
-                          const SizedBox(width: 16),
-                          itemBuilder: (context, index) {
-                            final blobId = _event!.photoIds![index];
-                            return FutureBuilder<Widget>(
-                              future: BlobService.loadBlobImage(
-                                  blobId,
+                      const SizedBox(height: 20),
+
+                      // TYTUŁ I DATA
+                      Text(
+                        _event!.title,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _formatDate(_event!),
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(color: Colors.grey[600]),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // GALERIA MINIATUR
+                      if ((_event!.photoIds?.length ?? 0) > 1)
+                        SizedBox(
+                          height: 80,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _event!.photoIds!.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 12),
+                            itemBuilder: (ctx, i) => ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: FutureBuilder<Widget>(
+                                future: BlobService.loadBlobImage(
+                                  _event!.photoIds![i],
+                                  width: 120,
+                                  height: 80,
                                   fit: BoxFit.cover,
-                                  width: 300,
-                                  height: 200),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Container(
-                                    width: 300,
-                                    height: 200,
-                                    color: Colors.grey.shade300,
-                                    child: const Center(
-                                      child:
-                                      CircularProgressIndicator(),
-                                    ),
-                                  );
-                                } else if (snapshot.hasError ||
-                                    !snapshot.hasData) {
-                                  return Container(
-                                    width: 300,
-                                    height: 200,
-                                    color: Colors.grey.shade300,
-                                    child: const Center(
-                                      child: Icon(Icons.broken_image,
-                                          size: 48,
-                                          color: Colors.grey),
-                                    ),
-                                  );
-                                } else {
-                                  return ClipRRect(
-                                    borderRadius:
-                                    BorderRadius.circular(16),
-                                    child: SizedBox(
-                                      width: 300,
-                                      height: 200,
-                                      child: snapshot.data,
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
+                                ),
+                                builder: (ctx, snap) {
+                                  if (snap.connectionState == ConnectionState.waiting) {
+                                    return Container(
+                                      width: 120,
+                                      height: 80,
+                                      color: Colors.grey.shade200,
+                                      child: const Center(
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                    );
+                                  }
+                                  if (snap.hasError || snap.data == null) {
+                                    return Container(
+                                      width: 120,
+                                      height: 80,
+                                      color: Colors.grey.shade200,
+                                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                                    );
+                                  }
+                                  return snap.data!;
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      if ((_event!.photoIds?.length ?? 0) > 1) const SizedBox(height: 24),
+
+                      // OPIS W KARDCIE
+                      Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 2,
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'OPIS',
+                                style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _event!.description ?? 'Brak opisu',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 30),
-                  _ProfileInfoTile(
-                    label: 'Tytuł wydarzenia',
-                    value: _event!.title,
-                    icon: Icons.title,
+                    ],
                   ),
-                  _ProfileInfoTile(
-                    label: 'Data wydarzenia',
-                    value:
-                    "${_event!.eventDate!.year.toString().padLeft(4, '0')}-"
-                        "${_event!.eventDate!.month.toString().padLeft(2, '0')}-"
-                        "${_event!.eventDate!.day.toString().padLeft(2, '0')} "
-                        "${_event!.eventDate!.hour.toString().padLeft(2, '0')}:"
-                        "${_event!.eventDate!.minute
-                        .toString()
-                        .padLeft(2, '0')}",
-                    icon: Icons.calendar_today,
-                  ),
-                  _ProfileInfoTile(
-                    label: 'Opis',
-                    value: _event!.description ?? 'Brak opisu',
-                    icon: Icons.description,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
+
+      // STOI NIEWZMIENIONY DOLNY PAS
       bottomNavigationBar: const _BottomNavBar(currentIndex: 0),
     );
   }
-}
 
-class _ProfileInfoTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _ProfileInfoTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1E8F8),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: const Color(0xFF6A1B9A)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: const TextStyle(
-                          fontSize: 13, color: Colors.black54)),
-                  const SizedBox(height: 4),
-                  Text(value,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _formatDate(Event e) {
+    final d = e.eventDate!;
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')} '
+        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }
 
 class _BottomNavBar extends StatelessWidget {
   final int currentIndex;
-
   const _BottomNavBar({required this.currentIndex});
 
   @override
@@ -250,23 +230,14 @@ class _BottomNavBar extends StatelessWidget {
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
       type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: 'Odkrywaj',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_outline),
-          label: 'Wiadomości',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profil',
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Odkrywaj'),
+        BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Wiadomości'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profil'),
       ],
-      onTap: (index) {
-        if (index == 0) context.go('/feed');
-        if (index == 1) context.goNamed('chat_list');
-        if (index == 2) context.go('/profile');
+      onTap: (i) {
+        if (i == 0) context.go('/feed');
+        if (i == 1) context.goNamed('chat_list');
+        if (i == 2) context.go('/profile');
       },
     );
   }
