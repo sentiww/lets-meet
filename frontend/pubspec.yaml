@@ -26,6 +26,8 @@ dependencies:
   # Routing
   go_router: ^12.1.1
 
+  google_fonts: ^4.0.3
+
   # Local Storage na tokeny
   flutter_secure_storage: ^9.0.0
 
